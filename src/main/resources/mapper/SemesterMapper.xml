@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.SemesterMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.Semester">
+    <result column="id" jdbcType="CHAR" property="id"/>
+    <result column="name" jdbcType="CHAR" property="name"/>
+    <result column="start_time" jdbcType="DATE" property="startTime"/>
+    <result column="end_time" jdbcType="DATE" property="endTime"/>
+    <result column="status" jdbcType="INTEGER" property="status"/>
+  </resultMap>
+  <insert id="insert" parameterType="xyz.kingsword.course.pojo.Semester">
+    insert into semester (id, `name`, start_time, end_time)
+    values (#{id,jdbcType=CHAR}, #{name,jdbcType=CHAR}, #{startTime,jdbcType=DATE}, #{endTime,jdbcType=DATE})
+  </insert>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, `name`, start_time, end_time, `status`
+    from semester
+  </select>
+  <update id="updateById" parameterType="xyz.kingsword.course.pojo.Semester">
+    update semester
+    set start_time=#{startTime,jdbcType=TIMESTAMP},
+        end_time= #{endTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <!--获取当前和未来学期-->
+  <select id="getFutureSemester" resultMap="BaseResultMap">
+    select *
+    from semester
+    where `status` > -1
+    order by id
+  </select>
+
+  <!--根据id获取学期-->
+  <select id="findById" resultMap="BaseResultMap">
+    select *
+    from semester
+    where id = #{id,jdbcType=CHAR}
+  </select>
+</mapper>

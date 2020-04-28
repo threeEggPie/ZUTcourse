@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.ExecutionPlanMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.ExecutionPlan">
+    <id column="id" jdbcType="INTEGER" property="id"/>
+    <result column="type" jdbcType="INTEGER" property="type"/>
+    <result column="nature" jdbcType="INTEGER" property="nature"/>
+    <result column="course_id" jdbcType="CHAR" property="courseId"/>
+    <result column="course_name" jdbcType="CHAR" property="courseName"/>
+    <result column="credit" jdbcType="INTEGER" property="credit"/>
+    <result column="time_all" jdbcType="INTEGER" property="timeAll"/>
+    <result column="time_theory" jdbcType="INTEGER" property="timeTheory"/>
+    <result column="time_lab" jdbcType="INTEGER" property="timeLab"/>
+    <result column="time_computer" jdbcType="INTEGER" property="timeComputer"/>
+    <result column="time_other" jdbcType="INTEGER" property="timeOther"/>
+    <result column="time_week" jdbcType="INTEGER" property="timeWeek"/>
+    <result column="start_semester" jdbcType="INTEGER" property="startSemester"/>
+    <result column="examination_way" jdbcType="CHAR" property="examinationWay"/>
+    <result column="speciality_id" jdbcType="CHAR" property="specialityId"/>
+    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="status" jdbcType="INTEGER" property="status"/>
+    <result column="grade" jdbcType="INTEGER" property="grade"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, `type`, nature, course_id, course_name, credit, time_all, time_theory, time_lab,
+    time_computer, time_other, time_week, start_semester, examination_way, speciality_id, 
+    semester_id
+  </sql>
+  <select id="select" resultMap="BaseResultMap">
+    select * from execution_plan
+    <where>
+      <if test="id !=null">
+        id=#{id}
+      </if>
+      <if test="semesterId !=null and semesterId!=''">
+        and semester_id=#{semesterId}
+      </if>
+      <if test="grade !=null">
+        and grade=#{grade}
+      </if>
+      <if test="specialityId !=null and specialityId !=''">
+        and speciality_id=#{specialityId}
+      </if>
+      <if test="courseName !=null and courseName!=''">
+        and course_name=#{courseName}
+      </if>
+      and `status`>-2
+    </where>
+    order by semester_id,grade
+  </select>
+  <insert id="insert" parameterType="xyz.kingsword.course.pojo.ExecutionPlan">
+    insert into execution_plan (`type`, nature,
+    course_id, course_name, credit,
+    time_all, time_theory, time_lab,
+    time_computer, time_other, time_week,
+    start_semester, examination_way, speciality_id,
+    semester_id,`status`,grade
+    )
+    values
+    <foreach collection="list" item="item" separator=",">
+      (#{item.type,jdbcType=INTEGER}, #{item.nature,jdbcType=INTEGER},
+      #{item.courseId,jdbcType=CHAR}, #{item.courseName,jdbcType=CHAR}, #{item.credit,jdbcType=INTEGER},
+      #{item.timeAll,jdbcType=INTEGER}, #{item.timeTheory,jdbcType=INTEGER}, #{item.timeLab,jdbcType=INTEGER},
+      #{item.timeComputer,jdbcType=INTEGER}, #{item.timeOther,jdbcType=INTEGER}, #{item.timeWeek,jdbcType=INTEGER},
+      #{item.startSemester,jdbcType=INTEGER}, #{item.examinationWay,jdbcType=CHAR},
+      #{item.specialityId,jdbcType=INTEGER},
+      #{item.semesterId,jdbcType=CHAR},#{item.status},#{item.grade})
+    </foreach>
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="xyz.kingsword.course.pojo.ExecutionPlan">
+    update execution_plan
+    set `type`          = #{type,jdbcType=INTEGER},
+        nature          = #{nature,jdbcType=INTEGER},
+        course_id       = #{courseId,jdbcType=CHAR},
+        course_name     = #{courseName,jdbcType=CHAR},
+        credit          = #{credit,jdbcType=INTEGER},
+        time_all        = #{timeAll,jdbcType=INTEGER},
+        time_theory     = #{timeTheory,jdbcType=INTEGER},
+        time_lab        = #{timeLab,jdbcType=INTEGER},
+        time_computer   = #{timeComputer,jdbcType=INTEGER},
+        time_other      = #{timeOther,jdbcType=INTEGER},
+        time_week       = #{timeWeek,jdbcType=INTEGER},
+        start_semester  = #{startSemester,jdbcType=INTEGER},
+        examination_way = #{examinationWay,jdbcType=CHAR},
+        speciality_id   = #{specialityId,jdbcType=INTEGER},
+        semester_id     = #{semesterId,jdbcType=CHAR},
+        grade           = #{grade,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <update id="delete" parameterType="java.lang.Integer">
+    update execution_plan
+    set `status`= -2
+    where id in (
+    <foreach collection="list" item="item" separator=",">
+      #{item}
+    </foreach>
+    )
+  </update>
+</mapper>

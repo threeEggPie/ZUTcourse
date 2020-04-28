@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.ResearchRoomMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.ResearchRoom">
+    <result column="name" jdbcType="CHAR" property="name"/>
+    <result column="teacher_in_charge" jdbcType="CHAR" property="teacherInCharge"/>
+  </resultMap>
+  <insert id="insert" parameterType="xyz.kingsword.course.pojo.ResearchRoom">
+    insert into researchroom (`name`, teacher_in_charge)
+    values (#{name,jdbcType=CHAR}, #{teacherInCharge,jdbcType=CHAR})
+  </insert>
+
+  <select id="select" resultMap="BaseResultMap">
+    select *
+    from researchroom
+  </select>
+  <delete id="delete">
+    delete
+    from researchroom
+    where name = #{name}
+  </delete>
+
+  <update id="update" parameterType="xyz.kingsword.course.pojo.ResearchRoom">
+    update researchroom
+    set teacher_in_charge=#{teacherInCharge},
+        `name`=#{name,jdbcType=VARCHAR}
+    where name = #{name,jdbcType=INTEGER}
+  </update>
+
+</mapper>

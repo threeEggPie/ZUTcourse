@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.SortCourseMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.SortCourse">
+    <id column="id" jdbcType="INTEGER" property="id"/>
+    <result column="tea_id" jdbcType="CHAR" property="teaId"/>
+    <result column="cou_id" jdbcType="CHAR" property="couId"/>
+    <result column="class" jdbcType="CHAR" property="className"/>
+    <result column="student_num" jdbcType="INTEGER" property="studentNum"/>
+    <result column="classroom_id" jdbcType="INTEGER" property="classroomId"/>
+    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="status" jdbcType="INTEGER" property="status"/>
+    <result column="flag" jdbcType="INTEGER" property="flag"/>
+    <result column="merged_id" jdbcType="CHAR" property="mergedId"/>
+  </resultMap>
+  <resultMap id="SortCourseViewMap" type="xyz.kingsword.course.VO.SortCourseVo">
+    <id column="id" jdbcType="INTEGER" property="id"/>
+    <result column="tea_id" jdbcType="CHAR" property="teacherId"/>
+    <result column="teacher_name" jdbcType="CHAR" property="teacherName"/>
+    <result column="cou_id" jdbcType="CHAR" property="courseId"/>
+    <result column="course_name" jdbcType="INTEGER" property="courseName"/>
+    <result column="nature" jdbcType="CHAR" property="nature"/>
+    <result column="student_num" jdbcType="INTEGER" property="studentNum"/>
+    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="class" jdbcType="CHAR" property="className"/>
+    <result column="book_manager" jdbcType="CHAR" property="bookManager"/>
+    <result column="text_book" jdbcType="CHAR" property="textBookString"/>
+    <result column="reference_book" jdbcType="CHAR" property="referenceBookString"/>
+    <result column="text_book_num" jdbcType="INTEGER" property="textBookNum"/>
+    <result column="reference_book_num" jdbcType="INTEGER" property="referenceBookNum"/>
+  </resultMap>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select *
+    from sortcourse
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="search" resultMap="SortCourseViewMap">
+    select sortcourse_id as id, tea_id, teacher_name, cou_id, course_name,
+    nature,text_book,reference_book,JSON_LENGTH(text_book) as text_book_num,
+    student_num, semester_id, class,book_manager
+    from sortcourse_view
+    <where>
+      <if test="teaId !=null and teaId !=''">
+        tea_id=#{teaId}
+      </if>
+      <if test="couId !=null and couId !=''">
+        and cou_id=#{couId}
+      </if>
+      <if test="semesterId !=null and semesterId !=''">
+        and semester_id=#{semesterId}
+      </if>
+      <if test="courseName !=null and courseName!=''">
+        and course_name like concat('%',#{courseName},'%')
+      </if>
+      <if test="sortCourseFlag==-1">
+        and tea_id is null
+      </if>
+      <if test="sortCourseFlag==1">
+        and tea_id is not null
+      </if>
+    </where>
+    order by semester_id,cou_id,tea_id
+  </select>
+  <select id="getById" resultMap="BaseResultMap">
+    select * from sortcourse where id in (
+    <foreach collection="list" item="item" separator=",">
+      #{item}
+    </foreach>
+    )
+  </select>
+  <select id="getTeacherHistory" resultMap="SortCourseViewMap">
+    SELECT sortcourse_id,
+           tea_id,
+           teacher_name,
+           cou_id,
+           course_name,
+           nature,
+           text_book,
+           reference_book,
+           student_num,
+           semester_id,
+           class
+    from sortcourse_view
+    where tea_id = #{teacherId}
+      and semester_id &lt; #{semesterId}
+  </select>
+
+  <select id="getCourseHistory" resultMap="SortCourseViewMap">
+    SELECT sortcourse_id,
+           tea_id,
+           teacher_name,
+           cou_id,
+           course_name,
+           nature,
+           text_book,
+           reference_book,
+           student_num,
+           semester_id,
+           class
+    from sortcourse_view
+    where cou_id = #{courseId}
+      and semester_id &lt; #{semesterId}
+  </select>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="xyz.kingsword.course.pojo.SortCourse"
+          useGeneratedKeys="true">
+    insert into sortcourse(cou_id,tea_id,class,student_num,classroom_id,semester_id,`merged_id`)
+    values
+    <foreach collection="list" item="item" separator=",">
+      (#{item.couId},#{item.teaId},#{item.className},#{item.studentNum},#{item.classroomId},#{item.semesterId},#{item.mergedId})
+    </foreach>
+  </insert>
+
+  <update id="deleteSortCourseRecord">
+    update sortcourse
+    set `status` = -2
+    where id in (
+    <foreach collection="list" item="item" separator=",">
+      #{item}
+    </foreach>
+    )
+  </update>
+  <update id="setTeacher">
+    update sortcourse
+    set tea_id=#{teaId}
+    where id = #{id}
+  </update>
+
+  <update id="restoreCourseHead">
+    update sortcourse set `status`=0
+    where id in (
+    <foreach collection="list" item="item" separator=",">
+      #{item}
+    </foreach>)
+  </update>
+
+  <update id="mergeCourseHead">
+    update sortcourse set `status`=-1
+    where id in (
+    <foreach collection="list" item="item" separator=",">
+      #{item}
+    </foreach>)
+  </update>
+
+  <update id="setSortCourse">
+    update sortcourse
+    <set>
+      <if test="teacherId!=null and teacherId!=''">
+        tea_id=#{teacherId},
+      </if>
+      <if test="courseId!=null and courseId!=''">
+        `cou_id`=#{courseId}
+      </if>
+    </set>
+    where id=#{id} and `status`=0
+  </update>
+  <update id="updateChainses">
+    update sortcourse
+    set tea_id=#{teaId}
+    where id = #{id}
+  </update>
+</mapper>

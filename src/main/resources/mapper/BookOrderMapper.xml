@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.BookOrderMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.BookOrder">
+    <id column="id" jdbcType="INTEGER" property="id"/>
+    <result column="user_id" jdbcType="CHAR" property="userId"/>
+    <result column="course_id" jdbcType="CHAR" property="courseId"/>
+    <result column="book_id" jdbcType="INTEGER" property="bookId"/>
+    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="status" jdbcType="INTEGER" property="status"/>
+  </resultMap>
+
+  <resultMap id="BookOrderVoMap" type="xyz.kingsword.course.VO.BookOrderVo">
+    <id column="order_id" jdbcType="INTEGER" property="orderId"/>
+    <result column="user_id" jdbcType="CHAR" property="userId"/>
+    <result column="user_name" jdbcType="CHAR" property="userName"/>
+    <result column="book_id" jdbcType="CHAR" property="bookId"/>
+    <result column="book_name" jdbcType="CHAR" property="name"/>
+    <result column="class" jdbcType="CHAR" property="className"/>
+    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="price" jdbcType="FLOAT" property="price"/>
+    <result column="course_id" jdbcType="CHAR" property="courseId"/>
+  </resultMap>
+
+  <resultMap id="BookExportViewMap" type="xyz.kingsword.course.pojo.DO.BookExportCourseDo">
+    <result column="course_name" jdbcType="CHAR" property="courseName"/>
+    <result column="course_id" jdbcType="CHAR" property="courseId"/>
+    <result column="nature" jdbcType="CHAR" property="nature"/>
+    <result column="class" jdbcType="VARCHAR" property="className"/>
+    <result column="tea_id" jdbcType="CHAR" property="teaId"/>
+    <result column="teacher_name" jdbcType="CHAR" property="teacherName"/>
+    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="text_book" jdbcType="CHAR" property="textBook"/>
+  </resultMap>
+
+<!--  <resultMap id="BookOrderStatisticsMap" type="xyz.kingsword.course.VO.BookOrderStatistics">-->
+  <!--    <result column="book_id" property="bookId"/>-->
+  <!--    <result column=""-->
+  <!--  </resultMap>-->
+  <sql id="Base_Column_List">
+    id, stu_id, course_id, book_id, semester_id, `status`
+  </sql>
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    insert ignore book_order(user_id, course_id, book_id, semester_id,`status`)
+    values
+    <foreach collection="list" item="item" separator=",">
+      (#{item.userId},#{item.courseId},#{item.bookId},#{item.semesterId},0)
+    </foreach>
+  </insert>
+  <update id="delete">
+    update ignore book_order
+    set `status`= -1
+    where id = #{id}
+  </update>
+
+  <select id="selectByBookId" resultType="java.lang.Integer">
+    select count(0)
+    from book_order_view
+    where book_id = #{id}
+      and class != '教师组'
+  </select>
+  <select id="select" resultMap="BookOrderVoMap">
+    select user_id,`name` as user_name, course_id,order_id, book_id,book_name,semester_id,price,class
+    from book_order_view
+    <where>
+      <if test="userId !=null and userId !=''">
+        user_id=#{userId}
+      </if>
+      <if test="semesterId !=null and semesterId !=''">
+        and semester_id=#{semesterId}
+      </if>
+      <if test="className !=null and className !=''">
+        and class=#{className}
+      </if>
+      <if test="bookId >0">
+        and book_id=#{bookId}
+      </if>
+    </where>
+  </select>
+
+  <select id="export" resultMap="BookExportViewMap">
+    select *
+    from book_export_view
+    where semester_id = #{semesterId}
+    order by course_id;
+  </select>
+  <select id="purchaseClass" resultType="java.lang.String">
+    select distinct book_order_view.class
+    from book_order_view
+    where semester_id = #{semesterId}
+    order by class
+  </select>
+  <select id="courseGroupOrderInfo" resultMap="BookOrderVoMap">
+    select user_id, `name` as user_name, book_id, book_name
+    from book_order_view
+    where semester_id = #{semesterId}
+      and course_id = #{courseId}
+      and class = '教师组'
+    order by user_id
+  </select>
+</mapper>

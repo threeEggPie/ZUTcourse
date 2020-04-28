@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.TrainingProgramMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.TrainingProgram">
+    <id column="id" jdbcType="INTEGER" property="id"/>
+    <result column="course_id" jdbcType="CHAR" property="courseId"/>
+    <result column="course_name" jdbcType="CHAR" property="courseName"/>
+    <result column="credit" jdbcType="REAL" property="credit"/>
+    <result column="core" jdbcType="BIT" property="core"/>
+    <result column="colleges_or_departments" jdbcType="CHAR" property="collegesOrDepartments"/>
+    <result column="examination_way" jdbcType="CHAR" property="examinationWay"/>
+    <result column="time_all" jdbcType="REAL" property="timeAll"/>
+    <result column="time_theory" jdbcType="REAL" property="timeTheory"/>
+    <result column="time_lab" jdbcType="REAL" property="timeLab"/>
+    <result column="time_computer" jdbcType="REAL" property="timeComputer"/>
+    <result column="time_other" jdbcType="REAL" property="timeOther"/>
+    <result column="start_semester" jdbcType="INTEGER" property="startSemester"/>
+    <result column="grade" jdbcType="INTEGER" property="grade"/>
+    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="status" jdbcType="INTEGER" property="status"/>
+    <result column="speciality_id" jdbcType="CHAR" property="specialityId"/>
+  </resultMap>
+  <delete id="delete">
+    delete
+    from training_program
+    where id in(
+    <foreach collection="list" item="item" separator=",">
+      #{id,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+  <insert id="insert" parameterType="xyz.kingsword.course.pojo.TrainingProgram">
+    insert into training_program (course_id, course_name,
+                                  credit, core, colleges_or_departments,
+                                  examination_way, time_all, time_theory,
+                                  time_lab, time_computer,
+                                  time_other, start_semester, grade, speciality_id, semester_id)
+    values (#{courseId,jdbcType=CHAR}, #{courseName,jdbcType=CHAR},
+            #{credit,jdbcType=REAL}, #{core,jdbcType=BIT}, #{collegesOrDepartments,jdbcType=CHAR},
+            #{examinationWay,jdbcType=CHAR}, #{timeAll,jdbcType=REAL}, #{timeTheory,jdbcType=REAL},
+            #{timeLab,jdbcType=REAL}, #{timeComputer,jdbcType=REAL},
+            #{timeOther,jdbcType=REAL}, #{startSemester,jdbcType=INTEGER}, #{grade,jdbcType=INTEGER},
+            #{specialityId,jdbcType=CHAR}, #{semesterId,jdbcType=CHAR})
+  </insert>
+  <!--  多条件查询-->
+  <select id="select" resultMap="BaseResultMap">
+    select *
+    from training_program
+    <where>
+      <if test="id !=null">
+        and id=#{id}
+      </if>
+      <if test="semesterId !=null">
+        and semester_id=#{semesterId}
+      </if>
+      <if test="specialityId !=null and specialityId !=''">
+        and speciality_id=#{specialityId}
+      </if>
+      <if test="grade != null">
+        and grade=#{grade}
+      </if>
+      <if test="courseName !=null and courseName !='' ">
+        and course_name like CONCAT('%','${courseName}','%' )
+      </if>
+      and `status` >-2
+    </where>
+    order by grade,start_semester,course_id
+  </select>
+  <update id="update" parameterType="xyz.kingsword.course.pojo.TrainingProgram">
+    update training_program
+    set course_id               = #{courseId,jdbcType=CHAR},
+        course_name             = #{courseName,jdbcType=CHAR},
+        credit                  = #{credit,jdbcType=REAL},
+        core                    = #{core,jdbcType=BIT},
+        colleges_or_departments = #{collegesOrDepartments,jdbcType=CHAR},
+        examination_way         = #{examinationWay,jdbcType=CHAR},
+        time_all                = #{timeAll,jdbcType=REAL},
+        time_theory             = #{timeTheory,jdbcType=REAL},
+        time_lab                = #{timeLab,jdbcType=REAL},
+        time_computer           = #{timeComputer,jdbcType=REAL},
+        time_other              = #{timeOther,jdbcType=REAL},
+        start_semester          = #{startSemester,jdbcType=INTEGER},
+        grade                   = #{grade,jdbcType=INTEGER},
+        speciality_id           = #{specialityId,jdbcType=CHAR},
+        semester_id             = #{semesterId,jdbcType=CHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <!--    insertList-->
+  <insert id="insertList" parameterType="xyz.kingsword.course.pojo.TrainingProgram">
+    insert into training_program (course_id, course_name,
+    credit, core,colleges_or_departments, examination_way,
+    time_all, time_theory, time_lab,
+    time_computer, time_other,
+    start_semester, grade, speciality_id, semester_id
+    )
+    values
+    <foreach collection="list" item="item" index="index" separator=",">
+      (
+      #{item.courseId,jdbcType=CHAR},
+      #{item.courseName,jdbcType=CHAR},
+      #{item.credit,jdbcType=REAL},
+      #{item.core,jdbcType=BIT},
+      #{item.collegesOrDepartments,jdbcType=CHAR},
+      #{item.examinationWay,jdbcType=CHAR},
+      #{item.timeAll,jdbcType=REAL},
+      #{item.timeTheory,jdbcType=REAL},
+      #{item.timeLab,jdbcType=REAL},
+      #{item.timeComputer,jdbcType=REAL},
+      #{item.timeOther,jdbcType=REAL},
+      #{item.startSemester,jdbcType=INTEGER},
+      #{item.grade,jdbcType=INTEGER},
+      #{item.specialityId,jdbcType=CHAR},
+      #{item.semesterId,jdbcType=CHAR}
+      )
+    </foreach>
+  </insert>
+</mapper>

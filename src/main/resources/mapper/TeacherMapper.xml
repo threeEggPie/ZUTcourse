@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.TeacherMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.Teacher">
+    <id column="id" jdbcType="CHAR" property="id"/>
+    <result column="password" jdbcType="CHAR" property="password"/>
+    <result column="name" jdbcType="CHAR" property="name"/>
+    <result column="research_room" jdbcType="INTEGER" property="researchRoom"/>
+    <result column="phone" jdbcType="CHAR" property="phone"/>
+    <result column="email" jdbcType="CHAR" property="email"/>
+    <result column="department_school" jdbcType="CHAR" property="departmentSchool"/>
+    <result column="teaching_title" jdbcType="CHAR" property="teachingTitle"/>
+    <result column="education" jdbcType="VARCHAR" property="education"/>
+    <result column="gender" jdbcType="VARCHAR" property="gender"/>
+    <result column="role" jdbcType="CHAR" property="role"/>
+    <result column="course_in_charge" jdbcType="CHAR" property="courseInCharge"/>
+    <result column="specialty_in_charge" jdbcType="CHAR" property="specialtyInCharge"/>
+    <result column="status" jdbcType="INTEGER" property="status"/>
+  </resultMap>
+
+  <resultMap id="TeacherVoMap" type="xyz.kingsword.course.VO.TeacherVo">
+    <id column="id" jdbcType="CHAR" property="id"/>
+    <result column="name" jdbcType="CHAR" property="name"/>
+    <result column="research_room" jdbcType="INTEGER" property="researchRoom"/>
+    <result column="phone" jdbcType="CHAR" property="phone"/>
+    <result column="email" jdbcType="CHAR" property="email"/>
+    <result column="department_school" jdbcType="CHAR" property="departmentSchool"/>
+    <result column="teaching_title" jdbcType="CHAR" property="teachingTitle"/>
+    <result column="education" jdbcType="VARCHAR" property="education"/>
+    <result column="gender" jdbcType="VARCHAR" property="gender"/>
+    <result column="role" jdbcType="CHAR" property="role"/>
+    <result column="course_in_charge" jdbcType="CHAR" property="courseInChargeStr"/>
+    <result column="specialty_in_charge" jdbcType="CHAR" property="specialtyInChargeStr"/>
+  </resultMap>
+
+  <resultMap id="TeacherGroupMap" type="xyz.kingsword.course.pojo.TeacherGroup">
+    <id column="id" property="id" jdbcType="INTEGER"/>
+    <result column="sort_id" jdbcType="CHAR" property="sortId"/>
+    <result column="cou_id" jdbcType="CHAR" property="courseId"/>
+    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="course_name" jdbcType="CHAR" property="courseName"/>
+    <result column="tea_id" jdbcType="CHAR" property="teaId"/>
+    <result column="tea_name" jdbcType="CHAR" property="teacherName"/>
+    <result column="class_name" jdbcType="CHAR" property="className"/>
+    <result column="calendar_id" jdbcType="CHAR" property="calendarId"/>
+  </resultMap>
+
+  <update id="deleteByPrimaryKey">
+    update teacher
+    set status= -1
+    where id = #{id}
+  </update>
+  <insert id="insert" parameterType="xyz.kingsword.course.pojo.Teacher">
+    insert ignore into teacher (id, `password`, `name`, research_room,
+    phone, email, department_school,
+    teaching_title, education, gender, `role`,
+    course_in_charge, specialty_in_charge, `status`)
+    values
+    <foreach collection="list" item="item" separator=",">
+      (#{item.id,jdbcType=CHAR}, #{item.password,jdbcType=CHAR}, #{item.name,jdbcType=CHAR},
+      #{item.researchRoom,jdbcType=INTEGER},
+      #{item.phone,jdbcType=CHAR}, #{item.email,jdbcType=CHAR}, #{item.departmentSchool,jdbcType=CHAR},
+      #{item.teachingTitle,jdbcType=VARCHAR}, #{item.education,jdbcType=VARCHAR}, #{item.gender,jdbcType=VARCHAR},
+      #{item.role,jdbcType=CHAR},
+      #{item.courseInCharge,jdbcType=CHAR}, #{item.specialtyInCharge,jdbcType=CHAR}, #{item.status})
+    </foreach>
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="xyz.kingsword.course.pojo.Teacher">
+    update teacher
+    set `id`=#{id,jdbcType=CHAR},
+        `name` = #{name,jdbcType=CHAR},
+        research_room = #{researchRoom,jdbcType=INTEGER},
+        phone = #{phone,jdbcType=CHAR},
+        email = #{email,jdbcType=CHAR},
+        department_school = #{departmentSchool,jdbcType=CHAR},
+        teaching_title=#{teachingTitle,jdbcType=VARCHAR},
+        education = #{education,jdbcType=VARCHAR},
+        gender = #{gender,jdbcType=VARCHAR},
+        `role` = #{role,jdbcType=CHAR},
+        course_in_charge = #{courseInCharge,jdbcType=CHAR},
+        specialty_in_charge = #{specialtyInCharge,jdbcType=CHAR}
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <select id="select" resultMap="BaseResultMap">
+    select * from teacher
+    <where>
+      <if test="id !=null and id !=''">
+        id =#{id}
+      </if>
+      <if test="name !=null and name !=''">
+        and `name` like concat('%', #{name}, '%')
+      </if>
+      <if test="roleId !=null">
+        and role =#{roleId}
+      </if>
+      and `status`=0
+    </where>
+  </select>
+  <select id="getByResearchRoom" resultMap="BaseResultMap">
+    select * from teacher where research_room in (
+    <foreach collection="list" item="item" separator=",">
+      #{item}
+    </foreach>
+    )
+  </select>
+  <select id="selectById" resultMap="TeacherVoMap">
+    select id,
+           `name`,
+           research_room,
+           department_school,
+           teaching_title,
+           gender,
+           `role`,
+           course_in_charge,
+           specialty_in_charge
+    from teacher
+    where id = #{id}
+  </select>
+  <select id="selectTeacherById" resultMap="BaseResultMap">
+    select *
+    from teacher
+    where id = #{id}
+  </select>
+</mapper>

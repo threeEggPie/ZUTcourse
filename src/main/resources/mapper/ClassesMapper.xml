@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.ClassesMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.Classes">
+    <result column="classname" jdbcType="CHAR" property="classname"/>
+    <result column="student_num" jdbcType="INTEGER" property="studentNum"/>
+    <result column="grade" jdbcType="INTEGER" property="grade"/>
+  </resultMap>
+  <resultMap id="CourseMap" type="xyz.kingsword.course.pojo.Course">
+    <result column="cou_id" jdbcType="CHAR" property="id"/>
+    <result column="course_name" jdbcType="CHAR" property="name"/>
+  </resultMap>
+
+  <insert id="insert" parameterType="xyz.kingsword.course.pojo.Classes">
+    insert into classes (classname, student_num)
+    values (#{classname,jdbcType=CHAR}, #{studentNum,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertList">
+    insert ignore into classes(classname, student_num, grade) values
+    <foreach collection="collection" separator="," item="item">
+      (#{item.classname},#{item.studentNum},#{item.grade})
+    </foreach>
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="xyz.kingsword.course.pojo.Classes">
+    update classes
+    set grade=#{grade},
+        student_num = #{studentNum,jdbcType=INTEGER}
+    where classname = #{classname,jdbcType=CHAR}
+  </update>
+  <select id="select" resultMap="BaseResultMap">
+    select *
+    from classes
+    <where>
+      <if test="className !=null and className !=''">
+        classname=#{className}
+      </if>
+      <if test="grade >0">
+        grade=#{grade}
+      </if>
+    </where>
+    order by grade,classname
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select *
+    from classes
+    order by classname
+  </select>
+  <select id="findByName" resultMap="BaseResultMap">
+    select *
+    from classes
+    where classname in (
+    <foreach collection="list" separator="," item="item">
+      #{item}
+    </foreach>
+    )
+  </select>
+  <select id="getCurriculum" resultMap="CourseMap">
+    SELECT course_name, text_book
+    from course_group_view
+    where class_name LIKE CONCAT('%', #{className}, '%')
+      and semester_id = #{semesterId}
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select *
+    from classes
+    where classname = #{name}
+  </select>
+</mapper>

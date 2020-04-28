@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.StudentMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.Student">
+    <result column="id" jdbcType="CHAR" property="id"/>
+    <result column="password" jdbcType="CHAR" property="password"/>
+    <result column="name" jdbcType="CHAR" property="name"/>
+    <result column="class_name" jdbcType="CHAR" property="className"/>
+    <result column="gender" jdbcType="VARCHAR" property="gender"/>
+  </resultMap>
+
+  <resultMap id="StudentVoMap" type="xyz.kingsword.course.VO.StudentVo">
+    <result column="id" jdbcType="CHAR" property="id"/>
+    <result column="name" jdbcType="CHAR" property="name"/>
+    <result column="class_name" jdbcType="CHAR" property="className"/>
+  </resultMap>
+
+  <resultMap id="StudentInfoDoMap" type="xyz.kingsword.course.pojo.DO.CurriculumDo">
+    <result column="class_name" jdbcType="CHAR" property="className"/>
+    <result column="cou_id" jdbcType="CHAR" property="courseId"/>
+    <result column="text_book" jdbcType="CHAR" property="textBook"/>
+    <result column="course_name" jdbcType="CHAR" property="courseName"/>
+  </resultMap>
+  <insert id="insert" parameterType="xyz.kingsword.course.pojo.Student">
+    insert ignore student (id, `password`, `name`, class_name, `role`,`status`)
+    values
+    <foreach collection="list" item="item" separator=",">
+      (#{item.id,jdbcType=CHAR}, #{item.password,jdbcType=CHAR}, #{item.name,jdbcType=CHAR},
+      #{item.className,jdbcType=CHAR},
+      #{item.role,jdbcType=INTEGER},0)
+    </foreach>
+  </insert>
+  <update id="delete">
+    update student
+    set `status`= -1
+    where id = #{username}
+  </update>
+
+  <select id="select" resultMap="StudentVoMap">
+    select id,`name`,class_name from student
+    <where>
+      <if test="id !=null and id !=''">
+        id=#{id}
+      </if>
+      <if test="name !=null and name !=''">
+        and name like concat('%', #{name,jdbcType=VARCHAR}, '%')
+      </if>
+      <if test="className !=null and className !=''">
+        and class_name =#{className}
+      </if>
+    </where>
+    order by id
+  </select>
+  <select id="selectById" resultMap="BaseResultMap">
+    select id, `name`, class_name
+    from student
+    where id = #{id}
+  </select>
+  <select id="curriculum" resultMap="StudentInfoDoMap">
+    SELECT class AS class_name,
+           text_book,
+           cou_id,
+           course_name
+    FROM sortcourse_view
+    WHERE sortcourse_view.class LIKE concat('%', (SELECT class_name FROM student WHERE id = #{studentId}), '%')
+      AND semester_id = #{semesterId}
+  </select>
+  <update id="update" parameterType="xyz.kingsword.course.pojo.Student">
+    update student
+    set `name`=#{name,jdbcType=VARCHAR},
+        class_name=#{className,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

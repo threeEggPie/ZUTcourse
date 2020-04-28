@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.UserMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.User">
+    <id column="username" jdbcType="CHAR" property="username"/>
+    <result column="password" jdbcType="CHAR" property="password"/>
+    <result column="name" jdbcType="CHAR" property="name"/>
+    <result column="role" jdbcType="CHAR" property="role"/>
+    <result column="current_role" jdbcType="INTEGER" property="currentRole"/>
+    <result column="entry_time" jdbcType="DATE" property="entryTime"/>
+    <result column="phone" jdbcType="CHAR" property="phone"/>
+    <result column="email" jdbcType="VARCHAR" property="email"/>
+  </resultMap>
+  <select id="login" resultMap="BaseResultMap">
+    SELECT username,
+           `password`,
+           `name`,
+           `role`,
+           `role` -> '$[0]' as `current_role`
+    FROM user_view
+    where username = #{username}
+  </select>
+  <select id="loginOnUsername" resultMap="BaseResultMap">
+    select *
+    from user_view
+    where username = #{username};
+  </select>
+  <update id="resetPasswordTeacher">
+    update
+      teacher
+    set `password`=#{password}
+    where id = #{username}
+  </update>
+
+  <update id="resetPasswordStudent">
+    update
+      student
+    set `password`=#{password}
+    where id = #{username}
+  </update>
+
+</mapper>

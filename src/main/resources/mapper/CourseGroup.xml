@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.CourseGroupMapper">
+  <resultMap id="BaseResultMap" type="xyz.kingsword.course.pojo.CourseGroup">
+    <result column="sort_id" jdbcType="CHAR" property="sortId"/>
+    <result column="cou_id" jdbcType="CHAR" property="couId"/>
+    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="course_name" jdbcType="CHAR" property="courseName"/>
+    <result column="tea_id" jdbcType="CHAR" property="teaId"/>
+    <result column="tea_name" jdbcType="CHAR" property="teacherName"/>
+    <result column="class_name" jdbcType="CHAR" property="className"/>
+    <result column="calendar_id" jdbcType="INTEGER" property="calendarId"/>
+    <result column="course_nature" jdbcType="INTEGER" property="courseNature"/>
+    <result column="text_book" jdbcType="CHAR" property="textBookStr"/>
+  </resultMap>
+  <select id="select" resultMap="BaseResultMap">
+    select * from course_group_view
+    <where>
+      <if test="courseId !=null and courseId !=''">
+        cou_id=#{courseId}
+      </if>
+      <if test="nature !=null and nature >0">
+        and course_nature=#{nature}
+      </if>
+      <if test="type !=null and type >-1">
+        and type=#{type}
+      </if>
+      <if test="declareStatus == true">
+        and JSON_LENGTH(text_book) >0
+      </if>
+      <if test="declareStatus == false">
+        and JSON_LENGTH(text_book) =0
+      </if>
+      <if test="semesterId !=null and semesterId !=''">
+        and semester_id=#{semesterId}
+      </if>
+      <if test="teaId !=null and teaId !=''">
+        and tea_id=#{teaId}
+      </if>
+      <if test="sortId !=null and sortId !=''">
+        and sort_id=#{sortId}
+      </if>
+      <if test="className !=null and className !=''">
+        and class_name LIKE CONCAT('%',#{className},'%')
+      </if>
+    </where>
+    order by semester_id
+  </select>
+  <select id="getNextSemesterCourseGroup" resultMap="BaseResultMap">
+    SELECT *
+    FROM course_group_view
+    WHERE cou_id = #{semesterId}
+      AND semester_id = (SELECT max(semester_id) FROM sortcourse_view)
+    group by tea_id
+  </select>
+  <select id="selectDistinct" resultMap="BaseResultMap">
+    select * from course_group_view
+    <where>
+      <if test="courseId !=null and courseId !=''">
+        cou_id=#{courseId}
+      </if>
+      <if test="semesterId !=null and semesterId !=''">
+        and semester_id=#{semesterId}
+      </if>
+      <if test="teaId !=null and teaId !=''">
+        and tea_id=#{teaId}
+      </if>
+      <if test="sortId !=null and sortId !=''">
+        and sort_id=#{sortId}
+      </if>
+      <if test="className !=null and className !=''">
+        and class_name LIKE CONCAT('%',#{className},'%')
+      </if>
+    </where>
+    group by tea_id
+    order by semester_id
+  </select>
+  <select id="geyByClasses" resultMap="BaseResultMap">
+    select cou_id, text_book, class_name
+    from course_group_view
+    where course_nature = 2
+      and class_name LIKE CONCAT('%', #{className}, '%')
+    group by cou_id
+  </select>
+</mapper>

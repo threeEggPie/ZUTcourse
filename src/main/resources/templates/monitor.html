@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <style>
+    .chart {
+      display: flex;
+    }
+
+    .config {
+      display: flex;
+    }
+  </style>
+</head>
+
+<body onload="init()">
+<div>应用监控</div>
+<div class="chart">
+  <div>性能监控</div>
+</div>
+<div class="config">
+  <div class="selfConfig">
+    <div>应用监控</div>
+    <div>
+      <div class="custom-control custom-switch">
+        <input type="checkbox" class="custom-control-input" id="purchaseSwitch"
+               oninput="purchaseSwitch(this)">
+        <label class="custom-control-label" for="purchaseSwitch">学生报教材</label>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="systemConfig">
+  <button onclick="shutdown()" class="btn btn-danger">关闭系统</button>
+  <button onclick="restart()" class="btn btn-info">系统重启</button>
+</div>
+
+</body>
+<script src="https://cdn.bootcss.com/qs/6.9.0/qs.min.js"></script>
+<script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.min.js"></script>
+<script>
+    function purchaseSwitch(event) {
+        axios.post('/monitor/setPurchaseSwitch', Qs.stringify({status: event.checked}))
+    }
+
+    function init() {
+        axios.get('/monitor/getPurchaseSwitch')
+            .then(function (response) {
+                console.log(response);
+                document.getElementById('purchaseSwitch').checked = response.data.status;
+            }).catch(function (params) {
+            alert('网络异常');
+            console.error(params);
+            document.getElementById('purchaseSwitch').checked = false;
+        })
+    }
+</script>
+
+</html>
