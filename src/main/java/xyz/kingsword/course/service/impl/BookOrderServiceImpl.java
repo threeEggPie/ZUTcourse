@@ -1,6 +1,7 @@
 package xyz.kingsword.course.service.impl;
 
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.StrUtil;
@@ -49,24 +50,23 @@ public class BookOrderServiceImpl implements BookOrderService {
     private Cache cache;
 
     /**
-     * @param bookOrderList
-     * @return
+     * @param bookOrderList 构建好的订单beenList
+     * @return 订单id集合
      */
     @Override
     public List<Integer> insert(List<BookOrder> bookOrderList) {
-        ConditionUtil.validateTrue(purchaseStatusCheck()).orElseThrow(() -> new OperationException(ErrorEnum.OPERATION_TIME_FORBIDDEN));
-        bookOrderMapper.insert(bookOrderList);
-        List<Integer> orderIdList = new ArrayList<>(bookOrderList.size());
-        for (BookOrder bookOrder : bookOrderList) {
-            orderIdList.add(bookOrder.getId());
+        if (CollUtil.isNotEmpty(bookOrderList)) {
+            ConditionUtil.validateTrue(purchaseStatusCheck()).orElseThrow(() -> new OperationException(ErrorEnum.OPERATION_TIME_FORBIDDEN));
+            bookOrderMapper.insert(bookOrderList);
+            return bookOrderList.parallelStream().map(BookOrder::getId).collect(Collectors.toList());
         }
-        return orderIdList;
+        return Collections.emptyList();
     }
 
     /**
      * 使forTeacher字段自增
      *
-     * @param bookIdList
+     * @param bookIdList bookIdList
      */
     @Override
     public void forTeacherIncrease(Collection<Integer> bookIdList) {
@@ -139,7 +139,7 @@ public class BookOrderServiceImpl implements BookOrderService {
     public List<CourseGroupOrderVo> courseGroupOrder(String courseId, String semesterId) {
         List<CourseGroup> courseGroupList = courseGroupMapper.selectDistinct(CourseGroupSelectParam.builder().semesterId(semesterId).courseId(courseId).build());
         if (courseGroupList.isEmpty())
-            return new ArrayList<>();
+            return Collections.emptyList();
         List<Integer> bookIdList = courseGroupList.get(0).getTextBook();
         Map<Integer, Book> bookMap = bookService.getMap(bookIdList);
         ConditionUtil.validateTrue(bookMap.size() == bookIdList.size()).orElseThrow(DataException::new);
@@ -386,7 +386,7 @@ public class BookOrderServiceImpl implements BookOrderService {
     public Workbook exportBookOrderStatistics(String semesterId) {
         List<BookOrderVo> bookOrderVoList = bookOrderMapper.select(BookOrderSelectParam.builder().semesterId(semesterId).build());
         Map<Integer, List<BookOrderVo>> collect = bookOrderVoList.stream().filter(v -> !v.getClassName().equals("教师组")).collect(Collectors.groupingBy(BookOrderVo::getBookId));
-        String[][] data = new String[collect.size()+1][7];
+        String[][] data = new String[collect.size() + 1][7];
         Iterator<Map.Entry<Integer, List<BookOrderVo>>> entries = collect.entrySet().iterator();
         int i = 1;
         String[] head = new String[7];
