@@ -175,11 +175,12 @@ public class BookServiceImpl implements BookService {
     @CachePut(cacheNames = "book", key = "#result.id")
     public Book insert(Book book, String courseId) {
         validateAuth(courseId);
-//        数据重复验证
+//        避免老师申报书籍重复
         List<Book> bookList = getTextBook(courseId);
         bookList.parallelStream().map(Book::getIsbn).forEach(v -> {
             ConditionUtil.validateTrue(!StrUtil.equals(v, book.getIsbn())).orElseThrow(() -> new DataException(ErrorEnum.DATA_REPLICATION));
         });
+//        查课程组所有老师
         CourseGroupMapper courseGroupMapper = SpringContextUtil.getBean(CourseGroupMapper.class);
         List<CourseGroup> courseGroupList = courseGroupMapper.getNextSemesterCourseGroup(courseId);
         book.setForTeacher(courseGroupList.size());

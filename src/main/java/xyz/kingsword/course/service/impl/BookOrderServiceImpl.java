@@ -87,6 +87,12 @@ public class BookOrderServiceImpl implements BookOrderService {
         }
     }
 
+    /**
+     * 根据年级，默认订购必修教材
+     *
+     * @param gradeList  年级列表
+     * @param semesterId 学期id
+     */
     @Override
     public void insertByGrade(Collection<Integer> gradeList, String semesterId) {
         List<BookOrder> bookOrderList = new ArrayList<>(1000);
@@ -107,7 +113,7 @@ public class BookOrderServiceImpl implements BookOrderService {
                             BookOrder bookOrder = new BookOrder();
                             bookOrder.setUserId(studentVo.getId());
                             bookOrder.setBookId(bookId);
-                            bookOrder.setSemesterId("19202");
+                            bookOrder.setSemesterId(semesterId);
                             bookOrder.setCourseId(courseId);
                             bookOrderList.add(bookOrder);
                         }

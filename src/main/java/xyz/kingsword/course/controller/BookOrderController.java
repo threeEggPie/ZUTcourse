@@ -59,7 +59,8 @@ public class BookOrderController {
     @ApiOperation("根据年级，订购必修教材")
     @Role
     public Result<Object> insertByGrade(@RequestBody List<Integer> gradeList) {
-        bookOrderService.insertByGrade(gradeList, "19202");
+        String nextSemesterId = TimeUtil.getNextSemester().getId();
+        bookOrderService.insertByGrade(gradeList, nextSemesterId);
         return new Result<>();
     }
 
