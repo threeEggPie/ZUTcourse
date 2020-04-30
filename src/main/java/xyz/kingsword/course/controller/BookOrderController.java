@@ -1,9 +1,12 @@
 package xyz.kingsword.course.controller;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.lang.Dict;
+import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,8 +16,10 @@ import xyz.kingsword.course.VO.BookOrderVo;
 import xyz.kingsword.course.VO.CourseGroupOrderVo;
 import xyz.kingsword.course.VO.StudentVo;
 import xyz.kingsword.course.annocations.Role;
+import xyz.kingsword.course.enmu.ErrorEnum;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.exception.AuthException;
+import xyz.kingsword.course.exception.ParameterException;
 import xyz.kingsword.course.pojo.BookOrder;
 import xyz.kingsword.course.pojo.Result;
 import xyz.kingsword.course.pojo.User;
@@ -22,6 +27,7 @@ import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
 import xyz.kingsword.course.pojo.param.DeclareBookExportParam;
 import xyz.kingsword.course.pojo.param.ExportPluralClassBookParam;
 import xyz.kingsword.course.service.BookOrderService;
+import xyz.kingsword.course.util.ConditionUtil;
 import xyz.kingsword.course.util.TimeUtil;
 import xyz.kingsword.course.util.UserUtil;
 
@@ -34,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Api(tags = "学生订书记录")
 @RequestMapping("/bookOrder")
 @RestController
@@ -130,14 +137,15 @@ public class BookOrderController {
     /**
      * 多个班级教材订购信息导出
      *
-     * @param param
+     * @param param 班级列表及学期id
      */
     @RequestMapping(value = "/exportPluralClassBookInfo", method = RequestMethod.GET)
     @ApiOperation("多个班级教材订购信息导出")
     @Role
     public void exportPluralClassBookInfo(HttpServletResponse response, ExportPluralClassBookParam param) throws IOException {
+        ConditionUtil.validateTrue(CollUtil.isNotEmpty(param.getClassNameList()) && StrUtil.isNotEmpty(param.getSemesterId()))
+                .orElseThrow(() -> new ParameterException(ErrorEnum.ERROR_PARAMETER));
         byte[] bytes = bookOrderService.exportPluralClassBookInfo(param.getClassNameList(), param.getSemesterId());
-        param.getClassNameList().forEach(System.out::println);
         String fileName = TimeUtil.getSemesterName(param.getSemesterId()) + "-各班级教材征订计划表.zip";
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), "ISO8859-1");
         response.setContentType("application/msexcel;charset=UTF-8");
