@@ -101,6 +101,11 @@ public class BookOrderController {
         return new Result<>(dict);
     }
 
+    /**
+     * 统计每个教材订购数量
+     *
+     * @param semesterId semesterId
+     */
     @RequestMapping(value = "/exportBookOrderStatistics", method = RequestMethod.GET)
     public void exportBookOrderStatistics(String semesterId, HttpServletResponse response) throws IOException {
         Workbook workbook = bookOrderService.exportBookOrderStatistics(semesterId);
