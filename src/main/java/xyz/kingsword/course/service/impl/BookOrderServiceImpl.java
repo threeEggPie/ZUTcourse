@@ -6,7 +6,9 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.system.ApplicationHome;
@@ -19,15 +21,14 @@ import xyz.kingsword.course.dao.*;
 import xyz.kingsword.course.enmu.CourseNature;
 import xyz.kingsword.course.enmu.ErrorEnum;
 import xyz.kingsword.course.enmu.RoleEnum;
+import xyz.kingsword.course.enmu.SpecialityEnum;
 import xyz.kingsword.course.exception.DataException;
 import xyz.kingsword.course.exception.OperationException;
 import xyz.kingsword.course.pojo.*;
-import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
-import xyz.kingsword.course.pojo.param.CourseGroupSelectParam;
-import xyz.kingsword.course.pojo.param.DeclareBookExportParam;
-import xyz.kingsword.course.pojo.param.StudentSelectParam;
+import xyz.kingsword.course.pojo.param.*;
 import xyz.kingsword.course.service.BookOrderService;
 import xyz.kingsword.course.service.BookService;
+import xyz.kingsword.course.service.CourseService;
 import xyz.kingsword.course.util.*;
 
 import javax.annotation.Resource;
@@ -46,6 +47,13 @@ public class BookOrderServiceImpl implements BookOrderService {
     private BookMapper bookMapper;
     @Resource
     private BookService bookService;
+    @Resource
+    private SpecialityMapper specialityMapper;
+    @Resource
+    private ClassesMapper classesMapper;
+    @Resource
+    private CourseMapper courseMapper;
+
     @Resource(name = "config")
     private Cache cache;
 
@@ -424,6 +432,94 @@ public class BookOrderServiceImpl implements BookOrderService {
         }
         return workbook;
     }
+
+    /**
+     * 导出年级订书记录
+     * @param param
+     * @return
+     */
+    @Override
+    public Workbook exportGradeOrder(ExportGradeBookParam param) {
+        String title="中原工学院软件学院教材出库单";
+        String[] ss = new String[6];
+        ss[0]="序号";
+        ss[1]="教材名称";
+        ss[2]="单价（元）";
+        ss[3]="单位";
+        ss[4]="数量";
+        ss[5]="总价";
+        Workbook workbook=new HSSFWorkbook();;
+        List<Speciality> specialities = specialityMapper.findClassBySpeciality(param.isRb()==true?SpecialityEnum.SOFTWARE_ENGINEERING.getCode():SpecialityEnum.JUNIOR_COLLEGE.getCode());
+        for (Speciality speciality : specialities) {
+            int i=0;
+            String sheetName=param.getGrade()+"级"+speciality.getName();
+            Sheet sheet = workbook.createSheet(sheetName);
+//            根据专业方向查询班级
+            ClassesSelectParam classesParam = new ClassesSelectParam();
+            classesParam.setGrade(param.getGrade());
+            classesParam.setSpeciality(speciality.getId());
+            List<Classes> classes = classesMapper.selectByGradeAndSpec(classesParam);
+            CellStyle style = getBaseCellStyle(workbook);
+            for (Classes aClass : classes) {
+                int sum=0;
+                int bookNum=1;
+                new CellRangeAddress(i,i,0,8);
+                Row row = sheet.createRow(i++);
+                row.createCell(0).setCellValue(title);
+                Row row1 = sheet.createRow(i++);
+                row1.createCell(0).setCellValue(aClass.getClassname()+TimeUtil.getSemesterName(param.getSemester()));
+                Row row2 = sheet.createRow(i++);
+//                表头
+                for(int j=0;j<6;j++){
+                    Cell cell = row2.createCell(j);
+                    cell.setCellStyle(style);
+                    cell.setCellValue(ss[j]);
+                }
+//                根据班级查询课程
+                List<Course> courses = courseMapper.selectCourseByClassName(aClass.getClassname(), param.getSemester());
+                for (Course course : courses) {
+                    List<Book> books = bookService.getTextBook(course.getId());
+                    for (Book book : books) {
+                        double price=book.getPrice();
+                        String bookName=book.getName();
+                        int count= bookOrderMapper.getClassBookCount(book.getId(),aClass.getClassname());
+                        Row bookRow = sheet.createRow(i++);
+                        Cell cell1 = bookRow.createCell(0);
+                        cell1.setCellStyle(style);
+                        cell1.setCellValue(bookNum++);
+                        Cell cell2 = bookRow.createCell(1);
+                        cell2.setCellStyle(style);
+                        cell2.setCellValue(bookName);
+                        Cell cell3 = bookRow.createCell(2);
+                        cell3.setCellStyle(style);
+                        cell3.setCellValue(price);
+                        Cell cell4 = bookRow.createCell(3);
+                        cell4.setCellStyle(style);
+                        cell4.setCellValue("本");
+                        Cell cell5 = bookRow.createCell(4);
+                        cell5.setCellStyle(style);
+                        cell5.setCellValue(count);
+                        Cell cell6 = bookRow.createCell(5);
+                        cell6.setCellStyle(style);
+                        cell6.setCellValue(price*count);
+                        sum+=price*count;
+                    }
+                }
+                for(int k=0;k<5;k++)
+                sheet.createRow(i++);
+                Row lastRow1 = sheet.createRow(i++);
+                lastRow1.createCell(1).setCellValue("合计");
+                lastRow1.createCell(5).setCellValue(sum);
+                Row lastRow2 = sheet.createRow(i++);
+                lastRow2.createCell(0).setCellValue("用途：学生用书");
+                Row lastRow3 = sheet.createRow(i++);
+                lastRow3.createCell(0).setCellValue("执单人：\t领书人：\t验收人：\t");
+            }
+        }
+
+        return workbook;
+    }
+
 
     /**
      * 构建导出班级课程表数据

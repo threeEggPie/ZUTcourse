@@ -2,6 +2,7 @@ package xyz.kingsword.course.dao;
 
 import org.apache.ibatis.annotations.Param;
 import xyz.kingsword.course.VO.SortCourseVo;
+import xyz.kingsword.course.pojo.Course;
 import xyz.kingsword.course.pojo.SortCourse;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
@@ -42,4 +43,6 @@ public interface SortCourseMapper {
     List<SortCourseVo> getCourseHistory(@Param("courseId") String courseId, @Param("semesterId") String semesterId);
 
     int setSortCourse(SortCourseUpdateParam param);
+
+
 }

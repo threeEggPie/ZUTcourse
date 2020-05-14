@@ -71,4 +71,15 @@ public class TimeUtil {
 
         return semesterName;
     }
+
+    /**
+     * 返回年级名称
+     * @param grade 年级
+     * @param rb 是否为本科
+     * @return 年级+本科/专科
+     */
+
+    public static String getGradeName(int grade,boolean rb){
+        return grade+"级"+(rb==true?"本科":"专科");
+    }
 }

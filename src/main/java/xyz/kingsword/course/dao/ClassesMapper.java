@@ -24,4 +24,6 @@ public interface ClassesMapper {
     List<Course> getCurriculum(String className, String semesterId);
 
     List<Classes> select(ClassesSelectParam param);
+
+    List<Classes> selectByGradeAndSpec(ClassesSelectParam param);
 }

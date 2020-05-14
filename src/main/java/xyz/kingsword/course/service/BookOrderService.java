@@ -6,6 +6,7 @@ import xyz.kingsword.course.VO.CourseGroupOrderVo;
 import xyz.kingsword.course.pojo.BookOrder;
 import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
 import xyz.kingsword.course.pojo.param.DeclareBookExportParam;
+import xyz.kingsword.course.pojo.param.ExportGradeBookParam;
 
 import java.util.Collection;
 import java.util.List;
@@ -34,4 +35,5 @@ public interface BookOrderService {
     Workbook exportBookOrderStatistics(String semesterId);
 
 
+    Workbook exportGradeOrder(ExportGradeBookParam param);
 }

@@ -98,4 +98,8 @@
       and class = '教师组'
     order by user_id
   </select>
+
+  <select id="getClassBookCount" resultType="int">
+    select count(*) from book_order where book_id=id and user_id in (select id from student where class_name=#{className})
+  </select>
 </mapper>

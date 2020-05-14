@@ -15,9 +15,12 @@ public class ClassesSelectParam {
 
     private int grade;
 
+    private int speciality;
+
     @Builder.Default
     private int pageNum = 1;
 
     @Builder.Default
     private int pageSize = 10;
+
 }

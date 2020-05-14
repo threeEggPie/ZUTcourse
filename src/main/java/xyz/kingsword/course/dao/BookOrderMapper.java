@@ -1,5 +1,6 @@
 package xyz.kingsword.course.dao;
 
+import org.apache.ibatis.annotations.Param;
 import xyz.kingsword.course.VO.BookOrderVo;
 import xyz.kingsword.course.pojo.BookOrder;
 import xyz.kingsword.course.pojo.DO.BookExportCourseDo;
@@ -21,4 +22,6 @@ public interface BookOrderMapper {
     List<BookExportCourseDo> export(String semesterId);
 
     List<String> purchaseClass(String semesterId);
+
+    int getClassBookCount(@Param("id") Integer id, @Param("className") String classname);
 }

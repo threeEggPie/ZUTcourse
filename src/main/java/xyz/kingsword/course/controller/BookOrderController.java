@@ -25,6 +25,7 @@ import xyz.kingsword.course.pojo.Result;
 import xyz.kingsword.course.pojo.User;
 import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
 import xyz.kingsword.course.pojo.param.DeclareBookExportParam;
+import xyz.kingsword.course.pojo.param.ExportGradeBookParam;
 import xyz.kingsword.course.pojo.param.ExportPluralClassBookParam;
 import xyz.kingsword.course.service.BookOrderService;
 import xyz.kingsword.course.util.ConditionUtil;
@@ -180,5 +181,20 @@ public class BookOrderController {
         response.addHeader("Cache-Control", "no-cache");
         workbook.write(response.getOutputStream());
         workbook.close();
+    }
+
+    @RequestMapping(value = "/exportGradeBookInfo",method = RequestMethod.GET)
+    @ApiOperation("年级订购教材信息导出")
+    public void exportGradeBookInfo(HttpServletResponse response, ExportGradeBookParam param) throws IOException{
+        Workbook workbook = bookOrderService.exportGradeOrder(param);
+        String fileName = TimeUtil.getGradeName(param.getGrade(),param.isRb()) + "出库单.xlsx";
+        fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), "ISO8859-1");
+        response.setContentType("application/msexcel;charset=UTF-8");
+        response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+        response.addHeader("Param", "no-cache");
+        response.addHeader("Cache-Control", "no-cache");
+        workbook.write(response.getOutputStream());
+        workbook.close();
+
     }
 }

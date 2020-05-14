@@ -212,11 +212,18 @@
     </where>
     order by id
   </select>
+
   <select id="getBookManager" resultMap="TeacherMap">
     select teacher.name as tea_name, course.book_manager as tea_id
     from course
            join teacher on course.book_manager = teacher.id
     where course.id = #{id}
       and course.`status` = 0;
-  </select>
+ </select>
+
+
+    <select id="selectCourseByClassName" resultMap="BaseResultMap">
+        select * from course where id in (select cou_id from sortcourse where class like "%"#{className}"%" and semester_id=#{semester})
+    </select>
+
 </mapper>
