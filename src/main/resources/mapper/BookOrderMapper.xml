@@ -20,6 +20,7 @@
     <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
     <result column="price" jdbcType="FLOAT" property="price"/>
     <result column="course_id" jdbcType="CHAR" property="courseId"/>
+    <result column="discount" jdbcType="FLOAT" property="discount" />
   </resultMap>
 
   <resultMap id="BookExportViewMap" type="xyz.kingsword.course.pojo.DO.BookExportCourseDo">
@@ -100,6 +101,23 @@
   </select>
 
   <select id="getClassBookCount" resultType="int">
-    select count(*) from book_order where book_id=id and user_id in (select id from student where class_name=#{className})
+    select count(book_id) from book_order_view where book_id=#{bookId} and class= #{className}
+  </select>
+  <update id="setSemesterDiscount" >
+    update book_order set discount =#{discount} where semester_id = #{semester}
+  </update>
+  <select id="selectDiscountBySemester" parameterType="String" resultType="Double">
+    select  discount  from book_order where semester_id = #{semester} limit 1
+  </select>
+
+  <select id="selectByExportGradeBookAccountParam" parameterType="ExportGradeBookAccountParam" resultMap="BookOrderVoMap">
+    select  user_id, `name` as user_name,class, book_id,semester_id, book_name,price,discount
+    from book_order_view where user_id like concat(#{grade},'%')
+    <if test="rb==1">
+      and class like 'RB%'
+    </if>
+    <if test="rb==0">
+      and class like 'RZ%'
+    </if>
   </select>
 </mapper>

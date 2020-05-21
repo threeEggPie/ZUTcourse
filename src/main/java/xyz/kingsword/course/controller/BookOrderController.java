@@ -21,6 +21,7 @@ import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.exception.AuthException;
 import xyz.kingsword.course.exception.ParameterException;
 import xyz.kingsword.course.pojo.BookOrder;
+import xyz.kingsword.course.pojo.param.ExportGradeBookAccountParam;
 import xyz.kingsword.course.pojo.Result;
 import xyz.kingsword.course.pojo.User;
 import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
@@ -36,6 +37,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -183,11 +185,11 @@ public class BookOrderController {
         workbook.close();
     }
 
-    @RequestMapping(value = "/exportGradeBookInfo",method = RequestMethod.GET)
+    @RequestMapping(value = "/exportGradeBookInfo", method = RequestMethod.GET)
     @ApiOperation("年级订购教材信息导出")
-    public void exportGradeBookInfo(HttpServletResponse response, ExportGradeBookParam param) throws IOException{
+    public void exportGradeBookInfo(HttpServletResponse response, ExportGradeBookParam param) throws IOException {
         Workbook workbook = bookOrderService.exportGradeOrder(param);
-        String fileName = TimeUtil.getGradeName(param.getGrade(),param.isRb()) + "出库单.xlsx";
+        String fileName = TimeUtil.getGradeName(param.getGrade(), param.isRb()) + "出库单.xlsx";
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), "ISO8859-1");
         response.setContentType("application/msexcel;charset=UTF-8");
         response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
@@ -196,5 +198,31 @@ public class BookOrderController {
         workbook.write(response.getOutputStream());
         workbook.close();
 
+    }
+
+    @RequestMapping(value = "/exportGradeBookAccount",method = RequestMethod.GET)
+    @ApiOperation("导出年级订购教程学生结算")
+    public void exportGradeBookAccount(HttpServletResponse response, ExportGradeBookAccountParam param) throws IOException {
+        Workbook workbook = bookOrderService.getGradeBookAccount(param);
+        String fileName = TimeUtil.getGradeName(param.getGrade(), param.isRb()) + "教材结算.xlsx";
+        fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), "ISO8859-1");
+        response.setContentType("application/msexcel;charset=UTF-8");
+        response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+        response.addHeader("Param", "no-cache");
+        response.addHeader("Cache-Control", "no-cache");
+        workbook.write(response.getOutputStream());
+        workbook.close();
+    }
+    @RequestMapping(value = "/setSemesterDiscount",method = RequestMethod.POST)
+    @ApiOperation("设置学期书费折扣值")
+    public Result<Object> setSemesterDiscount(String semester,Double discount){
+        bookOrderService.setSemesterDiscount(semester,discount);
+        return new Result<>();
+    }
+    @RequestMapping(value = "/getSemesterDiscount",method = RequestMethod.GET)
+    @ApiOperation("根据学期获取书费折扣值")
+    public Result<Double> getSemesterDiscount(String semester){
+        Double discount=bookOrderService.getDiscountBySemester(semester);
+        return new Result<>(discount);
     }
 }

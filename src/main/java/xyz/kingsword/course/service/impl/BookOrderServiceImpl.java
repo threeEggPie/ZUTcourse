@@ -9,6 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.system.ApplicationHome;
@@ -435,24 +438,25 @@ public class BookOrderServiceImpl implements BookOrderService {
 
     /**
      * 导出年级订书记录
+     *
      * @param param
      * @return
      */
     @Override
     public Workbook exportGradeOrder(ExportGradeBookParam param) {
-        String title="中原工学院软件学院教材出库单";
+        String title = "中原工学院软件学院教材出库单";
         String[] ss = new String[6];
-        ss[0]="序号";
-        ss[1]="教材名称";
-        ss[2]="单价（元）";
-        ss[3]="单位";
-        ss[4]="数量";
-        ss[5]="总价";
-        Workbook workbook=new HSSFWorkbook();;
-        List<Speciality> specialities = specialityMapper.findClassBySpeciality(param.isRb()==true?SpecialityEnum.SOFTWARE_ENGINEERING.getCode():SpecialityEnum.JUNIOR_COLLEGE.getCode());
+        ss[0] = "序号";
+        ss[1] = "教材名称";
+        ss[2] = "单价（元）";
+        ss[3] = "单位";
+        ss[4] = "数量";
+        ss[5] = "总价";
+        Workbook workbook = new HSSFWorkbook();
+        List<Speciality> specialities = specialityMapper.findClassBySpeciality(param.isRb() == true ? SpecialityEnum.SOFTWARE_ENGINEERING.getCode() : SpecialityEnum.JUNIOR_COLLEGE.getCode());
         for (Speciality speciality : specialities) {
-            int i=0;
-            String sheetName=param.getGrade()+"级"+speciality.getName();
+            int i = 0;
+            String sheetName = param.getGrade() + "级" + speciality.getName();
             Sheet sheet = workbook.createSheet(sheetName);
 //            根据专业方向查询班级
             ClassesSelectParam classesParam = new ClassesSelectParam();
@@ -461,16 +465,16 @@ public class BookOrderServiceImpl implements BookOrderService {
             List<Classes> classes = classesMapper.selectByGradeAndSpec(classesParam);
             CellStyle style = getBaseCellStyle(workbook);
             for (Classes aClass : classes) {
-                int sum=0;
-                int bookNum=1;
-                new CellRangeAddress(i,i,0,8);
+                int sum = 0;
+                int bookNum = 1;
+                new CellRangeAddress(i, i, 0, 8);
                 Row row = sheet.createRow(i++);
                 row.createCell(0).setCellValue(title);
                 Row row1 = sheet.createRow(i++);
-                row1.createCell(0).setCellValue(aClass.getClassname()+TimeUtil.getSemesterName(param.getSemester()));
+                row1.createCell(0).setCellValue(aClass.getClassname() + TimeUtil.getSemesterName(param.getSemester()));
                 Row row2 = sheet.createRow(i++);
 //                表头
-                for(int j=0;j<6;j++){
+                for (int j = 0; j < 6; j++) {
                     Cell cell = row2.createCell(j);
                     cell.setCellStyle(style);
                     cell.setCellValue(ss[j]);
@@ -480,9 +484,9 @@ public class BookOrderServiceImpl implements BookOrderService {
                 for (Course course : courses) {
                     List<Book> books = bookService.getTextBook(course.getId());
                     for (Book book : books) {
-                        double price=book.getPrice();
-                        String bookName=book.getName();
-                        int count= bookOrderMapper.getClassBookCount(book.getId(),aClass.getClassname());
+                        double price = book.getPrice();
+                        String bookName = book.getName();
+                        int count = bookOrderMapper.getClassBookCount(book.getId(), aClass.getClassname());
                         Row bookRow = sheet.createRow(i++);
                         Cell cell1 = bookRow.createCell(0);
                         cell1.setCellStyle(style);
@@ -501,12 +505,12 @@ public class BookOrderServiceImpl implements BookOrderService {
                         cell5.setCellValue(count);
                         Cell cell6 = bookRow.createCell(5);
                         cell6.setCellStyle(style);
-                        cell6.setCellValue(price*count);
-                        sum+=price*count;
+                        cell6.setCellValue(price * count);
+                        sum += price * count;
                     }
                 }
-                for(int k=0;k<5;k++)
-                sheet.createRow(i++);
+                for (int k = 0; k < 5; k++)
+                    sheet.createRow(i++);
                 Row lastRow1 = sheet.createRow(i++);
                 lastRow1.createCell(1).setCellValue("合计");
                 lastRow1.createCell(5).setCellValue(sum);
@@ -518,6 +522,112 @@ public class BookOrderServiceImpl implements BookOrderService {
         }
 
         return workbook;
+    }
+
+    /**
+     * 导出年级订书结算表
+     *
+     * @param param 参数类
+     * @return 结算表
+     */
+    @Override
+    public Workbook getGradeBookAccount(ExportGradeBookAccountParam param) {
+        String title = "软件学院" + TimeUtil.getGradeName(param.getGrade(), param.isRb()) + "学生书费单";
+        String[] head = new String[5];
+        head[0] = "序号";
+        head[1] = "班级";
+        head[2] = "学号";
+        head[3] = "姓名";
+        head[4] = "合计";
+        Semester nowSemester = TimeUtil.getNowSemester();
+        ArrayList<String> list = new ArrayList<>();
+        String semester = TimeUtil.getFirstSemester(param.getGrade());
+        while (!TimeUtil.getNextSemester(nowSemester.getId()).equals(semester)) {
+            list.add(semester + "学期");
+            list.add(getDiscountBySemester(semester) + "折后");
+            semester = TimeUtil.getNextSemester(semester);
+        }
+
+        String[][] data = renderData(param,list);
+        //构建数据
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet();
+        XSSFRow row1 = sheet.createRow(0);
+        int col=0;
+        for(int i=0;i<4;i++){
+            XSSFCell cell = row1.createCell(col++);
+            cell.setCellStyle(getBaseCellStyle(workbook));
+            cell.setCellValue(head[i]);
+        }
+        for(int i=0;i<list.size();i++){
+            XSSFCell cell = row1.createCell(col++);
+            cell.setCellStyle(getBaseCellStyle(workbook));
+            cell.setCellValue(list.get(i));
+        }
+        XSSFCell totalCell = row1.createCell(col++);
+        totalCell.setCellStyle(getBaseCellStyle(workbook));
+        totalCell.setCellValue("总计");
+        for(int i=0;i<data.length;i++){
+            XSSFRow row = sheet.createRow(i+1);
+            for(int j=0;j<data[i].length;j++){
+                XSSFCell cell = row.createCell(j);
+                cell.setCellStyle(getBaseCellStyle(workbook));
+                cell.setCellValue(data[i][j]);
+            }
+        }
+
+        return workbook;
+    }
+
+    /**
+     * 构建年级订书结算表数据
+     *
+     * @param param
+     * @return
+     */
+    public String[][] renderData(ExportGradeBookAccountParam param,List<String> semesterList) {
+        Map<String, List<BookOrderVo>> studentMap = bookOrderMapper.selectByExportGradeBookAccountParam(param)
+                .stream()
+                .sorted((x, y) -> StrUtil.compare(x.getUserId(), y.getUserId(), false))
+                .collect(Collectors.groupingBy(BookOrderVo::getUserId));
+        String[][] data = new String[studentMap.size()][5+semesterList.size()];
+        int row=0,col=0;
+        for (String studentId : studentMap.keySet()) {
+            double studentSum=0;
+            col=0;
+            BookOrderVo bookOrderVo = studentMap.get(studentId).get(0);
+            data[row][col++]=row+1+"";
+            data[row][col++]=bookOrderVo.getClassName();
+            data[row][col++]=bookOrderVo.getUserId();
+            data[row][col++]=bookOrderVo.getUserName();
+            Map<String, List<BookOrderVo>> semesterMap = studentMap.get(studentId).stream().collect(Collectors.groupingBy(BookOrderVo::getSemesterId));
+            for (String semeterId : semesterMap.keySet()) {
+                BookOrderVo disCount = semesterMap.get(semeterId).get(0);
+                Double oneSemesterSum = semesterMap.get(semeterId)
+                        .stream()
+                        .map((bov) -> bov.getPrice())
+                        .reduce(0.0, (price1, price2) -> price1 + price2);
+                String  discountPrice = String.format("%.2f",disCount.getDiscount()*oneSemesterSum*0.1) ;
+                data[row][col++]=String.format("%.2f",oneSemesterSum);
+                data[row][col++]=discountPrice+"";
+                studentSum+=Double.parseDouble(discountPrice);
+            }
+        data[row++][col]=studentSum+"";
+
+        }
+
+        return data;
+    }
+
+    @Override
+    public void setSemesterDiscount(String semester, Double discount) {
+        bookOrderMapper.setSemesterDiscount(semester, discount);
+    }
+
+    @Override
+    public Double getDiscountBySemester(String semester) {
+        Double discount = bookOrderMapper.selectDiscountBySemester(semester);
+        return discount;
     }
 
 

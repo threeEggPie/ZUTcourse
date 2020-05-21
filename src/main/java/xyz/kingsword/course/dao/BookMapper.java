@@ -2,6 +2,7 @@ package xyz.kingsword.course.dao;
 
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import xyz.kingsword.course.pojo.Book;
 
 import java.util.Collection;
@@ -24,6 +25,7 @@ public interface BookMapper {
     Book selectBookByPrimaryKey(int id);
 
     List<Book> selectAll();
+
 
 
 }

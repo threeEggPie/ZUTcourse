@@ -82,4 +82,27 @@ public class TimeUtil {
     public static String getGradeName(int grade,boolean rb){
         return grade+"级"+(rb==true?"本科":"专科");
     }
+
+    /**
+     * 根据年级获取该年级的第一个学期
+     * @param grade
+     * @return
+     */
+    public static String getFirstSemester(int grade){
+        return ""+grade%100+(grade+1)%100+1;
+    }
+
+    /**
+     * 根据已知学期id获取下一个学期id
+     * @param semester
+     * @return
+     */
+    public static String getNextSemester(String semester){
+        int semesterInt = Integer.parseInt(semester);
+        if(semesterInt%10==1){
+            return ""+(semesterInt+1);
+        }else {
+            return ""+(Integer.parseInt(semester.substring(0,2))+1)+(Integer.parseInt(semester.substring(0,2))+2)+1;
+        }
+    }
 }

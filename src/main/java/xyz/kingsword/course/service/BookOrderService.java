@@ -6,6 +6,7 @@ import xyz.kingsword.course.VO.CourseGroupOrderVo;
 import xyz.kingsword.course.pojo.BookOrder;
 import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
 import xyz.kingsword.course.pojo.param.DeclareBookExportParam;
+import xyz.kingsword.course.pojo.param.ExportGradeBookAccountParam;
 import xyz.kingsword.course.pojo.param.ExportGradeBookParam;
 
 import java.util.Collection;
@@ -36,4 +37,15 @@ public interface BookOrderService {
 
 
     Workbook exportGradeOrder(ExportGradeBookParam param);
+
+    /**
+     * 导出年级订购教程学生结算
+     * @param param 参数类
+     * @return excel表格
+     */
+    Workbook getGradeBookAccount(ExportGradeBookAccountParam param);
+
+    void setSemesterDiscount(String semester, Double discount);
+
+    Double getDiscountBySemester(String semester);
 }

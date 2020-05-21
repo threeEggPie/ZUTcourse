@@ -5,6 +5,7 @@ import xyz.kingsword.course.VO.BookOrderVo;
 import xyz.kingsword.course.pojo.BookOrder;
 import xyz.kingsword.course.pojo.DO.BookExportCourseDo;
 import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
+import xyz.kingsword.course.pojo.param.ExportGradeBookAccountParam;
 
 import java.util.List;
 
@@ -24,4 +25,9 @@ public interface BookOrderMapper {
     List<String> purchaseClass(String semesterId);
 
     int getClassBookCount(@Param("id") Integer id, @Param("className") String classname);
+
+    Double selectDiscountBySemester(String semester);
+    void setSemesterDiscount(@Param("semester") String semester, @Param("discount") Double discount);
+
+    List<BookOrderVo> selectByExportGradeBookAccountParam(ExportGradeBookAccountParam param);
 }

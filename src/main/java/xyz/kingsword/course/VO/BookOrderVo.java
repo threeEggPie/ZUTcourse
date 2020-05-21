@@ -25,4 +25,6 @@ public class BookOrderVo {
     private String courseId;
 
     private String className;
+
+    private double discount;
 }
