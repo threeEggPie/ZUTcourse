@@ -18,7 +18,7 @@ import java.util.List;
  * 缓存初始化
  */
 @Configuration
-public class EhCacheConfig {
+public class CacheConfig {
     @Resource
     private BookMapper bookMapper;
     @Resource
