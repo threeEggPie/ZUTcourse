@@ -27,6 +27,7 @@ public interface BookOrderMapper {
     int getClassBookCount(@Param("id") Integer id, @Param("className") String classname);
 
     Double selectDiscountBySemester(String semester);
+
     void setSemesterDiscount(@Param("semester") String semester, @Param("discount") Double discount);
 
     List<BookOrderVo> selectByExportGradeBookAccountParam(ExportGradeBookAccountParam param);

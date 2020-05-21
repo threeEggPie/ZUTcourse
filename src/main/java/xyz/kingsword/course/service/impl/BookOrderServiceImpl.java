@@ -14,8 +14,8 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.system.ApplicationHome;
-import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
 import xyz.kingsword.course.VO.BookOrderVo;
 import xyz.kingsword.course.VO.CourseGroupOrderVo;
@@ -31,7 +31,6 @@ import xyz.kingsword.course.pojo.*;
 import xyz.kingsword.course.pojo.param.*;
 import xyz.kingsword.course.service.BookOrderService;
 import xyz.kingsword.course.service.BookService;
-import xyz.kingsword.course.service.CourseService;
 import xyz.kingsword.course.util.*;
 
 import javax.annotation.Resource;
@@ -56,9 +55,6 @@ public class BookOrderServiceImpl implements BookOrderService {
     private ClassesMapper classesMapper;
     @Resource
     private CourseMapper courseMapper;
-
-    @Resource(name = "config")
-    private Cache cache;
 
     /**
      * @param bookOrderList 构建好的订单beenList
@@ -180,14 +176,15 @@ public class BookOrderServiceImpl implements BookOrderService {
         return courseGroupOrderVoList;
     }
 
+
     /**
      * 订书开关验证，只针对学生
+     *
+     * @return true可订购，false不可订购
      */
     private boolean purchaseStatusCheck() {
-        User user = UserUtil.getUser();
-        Integer roleId = user.getCurrentRole();
-        if (roleId != null && roleId == RoleEnum.STUDENT.getCode()) {
-            return Optional.ofNullable(cache.get("purchaseStatus", Boolean.class)).orElse(true);
+        if (UserUtil.isStudent()) {
+            return SpringContextUtil.getBean(Constant.class).getPurchaseStatus().equals("true");
         }
         return true;
     }
@@ -548,18 +545,18 @@ public class BookOrderServiceImpl implements BookOrderService {
             semester = TimeUtil.getNextSemester(semester);
         }
 
-        String[][] data = renderData(param,list);
+        String[][] data = renderData(param, list);
         //构建数据
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet();
         XSSFRow row1 = sheet.createRow(0);
-        int col=0;
-        for(int i=0;i<4;i++){
+        int col = 0;
+        for (int i = 0; i < 4; i++) {
             XSSFCell cell = row1.createCell(col++);
             cell.setCellStyle(getBaseCellStyle(workbook));
             cell.setCellValue(head[i]);
         }
-        for(int i=0;i<list.size();i++){
+        for (int i = 0; i < list.size(); i++) {
             XSSFCell cell = row1.createCell(col++);
             cell.setCellStyle(getBaseCellStyle(workbook));
             cell.setCellValue(list.get(i));
@@ -567,9 +564,9 @@ public class BookOrderServiceImpl implements BookOrderService {
         XSSFCell totalCell = row1.createCell(col++);
         totalCell.setCellStyle(getBaseCellStyle(workbook));
         totalCell.setCellValue("总计");
-        for(int i=0;i<data.length;i++){
-            XSSFRow row = sheet.createRow(i+1);
-            for(int j=0;j<data[i].length;j++){
+        for (int i = 0; i < data.length; i++) {
+            XSSFRow row = sheet.createRow(i + 1);
+            for (int j = 0; j < data[i].length; j++) {
                 XSSFCell cell = row.createCell(j);
                 cell.setCellStyle(getBaseCellStyle(workbook));
                 cell.setCellValue(data[i][j]);
@@ -585,21 +582,21 @@ public class BookOrderServiceImpl implements BookOrderService {
      * @param param
      * @return
      */
-    public String[][] renderData(ExportGradeBookAccountParam param,List<String> semesterList) {
+    public String[][] renderData(ExportGradeBookAccountParam param, List<String> semesterList) {
         Map<String, List<BookOrderVo>> studentMap = bookOrderMapper.selectByExportGradeBookAccountParam(param)
                 .stream()
                 .sorted((x, y) -> StrUtil.compare(x.getUserId(), y.getUserId(), false))
                 .collect(Collectors.groupingBy(BookOrderVo::getUserId));
-        String[][] data = new String[studentMap.size()][5+semesterList.size()];
-        int row=0,col=0;
+        String[][] data = new String[studentMap.size()][5 + semesterList.size()];
+        int row = 0, col = 0;
         for (String studentId : studentMap.keySet()) {
-            double studentSum=0;
-            col=0;
+            double studentSum = 0;
+            col = 0;
             BookOrderVo bookOrderVo = studentMap.get(studentId).get(0);
-            data[row][col++]=row+1+"";
-            data[row][col++]=bookOrderVo.getClassName();
-            data[row][col++]=bookOrderVo.getUserId();
-            data[row][col++]=bookOrderVo.getUserName();
+            data[row][col++] = row + 1 + "";
+            data[row][col++] = bookOrderVo.getClassName();
+            data[row][col++] = bookOrderVo.getUserId();
+            data[row][col++] = bookOrderVo.getUserName();
             Map<String, List<BookOrderVo>> semesterMap = studentMap.get(studentId).stream().collect(Collectors.groupingBy(BookOrderVo::getSemesterId));
             for (String semeterId : semesterMap.keySet()) {
                 BookOrderVo disCount = semesterMap.get(semeterId).get(0);
@@ -607,12 +604,12 @@ public class BookOrderServiceImpl implements BookOrderService {
                         .stream()
                         .map((bov) -> bov.getPrice())
                         .reduce(0.0, (price1, price2) -> price1 + price2);
-                String  discountPrice = String.format("%.2f",disCount.getDiscount()*oneSemesterSum*0.1) ;
-                data[row][col++]=String.format("%.2f",oneSemesterSum);
-                data[row][col++]=discountPrice+"";
-                studentSum+=Double.parseDouble(discountPrice);
+                String discountPrice = String.format("%.2f", disCount.getDiscount() * oneSemesterSum * 0.1);
+                data[row][col++] = String.format("%.2f", oneSemesterSum);
+                data[row][col++] = discountPrice + "";
+                studentSum += Double.parseDouble(discountPrice);
             }
-        data[row++][col]=studentSum+"";
+            data[row++][col] = studentSum + "";
 
         }
 
@@ -626,8 +623,7 @@ public class BookOrderServiceImpl implements BookOrderService {
 
     @Override
     public Double getDiscountBySemester(String semester) {
-        Double discount = bookOrderMapper.selectDiscountBySemester(semester);
-        return discount;
+        return bookOrderMapper.selectDiscountBySemester(semester);
     }
 
 

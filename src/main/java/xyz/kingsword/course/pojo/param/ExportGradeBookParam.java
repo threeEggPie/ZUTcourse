@@ -3,8 +3,9 @@ package xyz.kingsword.course.pojo.param;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.sql.Date;
-
+/**
+ * @author 余建青
+ */
 @Data
 public class ExportGradeBookParam {
     private int grade;

@@ -1,6 +1,8 @@
 package xyz.kingsword.course.config;
 
-import org.springframework.cache.Cache;
+import cn.hutool.cache.Cache;
+import cn.hutool.cache.CacheUtil;
+import cn.hutool.cache.impl.LFUCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import xyz.kingsword.course.dao.BookMapper;
@@ -18,45 +20,23 @@ import java.util.List;
 @Configuration
 public class EhCacheConfig {
     @Resource
-    private org.springframework.cache.CacheManager springCacheManager;
-    @Resource
-    private net.sf.ehcache.CacheManager ehcacheCacheManager;
-    @Resource
     private BookMapper bookMapper;
     @Resource
     private TeacherMapper teacherMapper;
 
-    @Bean(name = "config")
-    public Cache config() {
-        return springCacheManager.getCache("config");
-    }
-
     @Bean(name = "book")
-    public Cache book() {
-        Cache cache = springCacheManager.getCache("book");
-//        net.sf.ehcache.Cache cache = ehcacheCacheManager.getCache("book");
-//        springCacheManager.getCache("book")
-        net.sf.ehcache.Cache book1 = ehcacheCacheManager.getCache("book");
-        int size = (int) book1.getSize();
-        if (size == 0) {
-            List<Book> bookList = bookMapper.selectAll();
-            for (Book book : bookList) {
-                cache.put(book.getId(), book);
-            }
-        }
+    public Cache<Integer, Book> book() {
+        List<Book> bookList = bookMapper.selectAll();
+        LFUCache<Integer, Book> cache = CacheUtil.newLFUCache(bookList.size(), 24 * 60 * 60 * 1000L);
+        bookList.forEach(v -> cache.put(v.getId(), v));
         return cache;
     }
 
     @Bean(name = "teacher")
-    public Cache teacher() {
-        Cache cache = springCacheManager.getCache("teacher");
-        int size = ehcacheCacheManager.getCache("teacher").getSize();
-        if (size == 0) {
-            List<Teacher> teacherList = teacherMapper.select(TeacherSelectParam.builder().pageSize(0).build());
-            for (Teacher teacher : teacherList) {
-                cache.put(teacher.getId(), teacher);
-            }
-        }
+    public Cache<String, Teacher> teacher() {
+        List<Teacher> teacherList = teacherMapper.select(TeacherSelectParam.builder().pageSize(0).build());
+        LFUCache<String, Teacher> cache = CacheUtil.newLFUCache(teacherList.size(), 24 * 60 * 60 * 1000L);
+        teacherList.forEach(v -> cache.put(v.getId(), v));
         return cache;
     }
 }

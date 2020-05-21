@@ -11,7 +11,7 @@ public interface BookService {
 
     Book insert(Book book, String courseId);
 
-    void delete(List<Integer> idList,String courseId);
+    void delete(List<Integer> idList, String courseId);
 
     Book getBook(int id);
 
@@ -23,15 +23,7 @@ public interface BookService {
 
     List<Book> getByIdList(Collection<Integer> idList);
 
-    Map<Integer,Book> getMap(Collection<Integer> idList);
+    Map<Integer, Book> getMap(Collection<Integer> idList);
 
     List<Book> getByIdList(String json);
-
-    void setDeclareStatus(boolean flag);
-
-    boolean getDeclareStatus();
-
-    void setPurchaseStatus(boolean flag);
-
-    boolean getPurchaseStatus();
 }

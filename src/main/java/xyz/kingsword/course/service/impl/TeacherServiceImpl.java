@@ -1,14 +1,13 @@
 package xyz.kingsword.course.service.impl;
 
+import cn.hutool.cache.Cache;
 import cn.hutool.crypto.SecureUtil;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.github.pagehelper.page.PageMethod;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.cache.Cache;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import xyz.kingsword.course.VO.TeacherVo;
 import xyz.kingsword.course.dao.TeacherMapper;
@@ -31,7 +30,7 @@ public class TeacherServiceImpl implements TeacherService {
     private TeacherMapper teacherMapper;
 
     @Resource(name = "teacher")
-    private Cache cache;
+    private Cache<String, Teacher> cache;
 
     @Override
     public void insert(List<Teacher> teacherList) {
@@ -72,7 +71,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public PageInfo<Teacher> select(TeacherSelectParam param) {
-        return PageHelper.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> teacherMapper.select(param));
+        return PageMethod.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> teacherMapper.select(param));
     }
 
     @Override
@@ -81,9 +80,8 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     @Override
-    @Cacheable(cacheNames = "teacher", key = "#id")
     public Teacher getTeacherById(String id) {
-        return teacherMapper.selectTeacherById(id);
+        return cache.get(id, () -> teacherMapper.selectTeacherById(id));
     }
 
     @Override

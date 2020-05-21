@@ -5,45 +5,82 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.1.6.RELEASE</version>
+    <version>2.3.0.RELEASE</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>xyz.kingsword</groupId>
   <artifactId>course</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.2</version>
   <name>course</name>
-  <description>Teaching Task Management System</description>
-
   <properties>
     <java.version>1.8</java.version>
-    <springboot.version>2.1.10.RELEASE</springboot.version>
+    <springboot.version>2.3.0.RELEASE</springboot.version>
     <swagger.version>2.9.2</swagger.version>
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
   </properties>
 
   <dependencies>
-    <!--    springboot监控-->
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
+      <artifactId>spring-boot-starter</artifactId>
+      <version>${springboot.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>slf4j-api</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
       <version>${springboot.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>jackson-annotations</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
+    <!--    导入xml或properties配置-->
     <dependency>
-      <groupId>org.mybatis.spring.boot</groupId>
-      <artifactId>mybatis-spring-boot-starter</artifactId>
-      <version>2.1.0</version>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-configuration-processor</artifactId>
+      <optional>true</optional>
+      <version>${springboot.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-cache</artifactId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <version>${springboot.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>junit-jupiter-api</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
-    <!-- ehcache -->
+    <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
     <dependency>
-      <groupId>net.sf.ehcache</groupId>
-      <artifactId>ehcache</artifactId>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter</artifactId>
+      <version>2.1.2</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>spring-beans</artifactId>
+          <groupId>org.springframework</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>spring-boot-starter</artifactId>
+          <groupId>org.springframework.boot</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>spring-boot-autoconfigure</artifactId>
+          <groupId>org.springframework.boot</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
     <dependency>
@@ -52,12 +89,6 @@
       <!--      <version>8.0.17</version>-->
       <version>5.1.48</version>
       <scope>runtime</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
     <dependency>
@@ -70,13 +101,13 @@
     <dependency>
       <groupId>cn.hutool</groupId>
       <artifactId>hutool-all</artifactId>
-      <version>5.3.2</version>
+      <version>5.3.5</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
     <dependency>
       <groupId>com.alibaba</groupId>
       <artifactId>fastjson</artifactId>
-      <version>1.2.58</version>
+      <version>1.2.68</version>
     </dependency>
     <!--    java操作word文档-->
     <dependency>
@@ -87,6 +118,10 @@
         <exclusion>
           <artifactId>xmlbeans</artifactId>
           <groupId>org.apache.xmlbeans</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-api</artifactId>
+          <groupId>org.slf4j</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -106,6 +141,14 @@
         <exclusion>
           <artifactId>mybatis-spring-boot-starter</artifactId>
           <groupId>org.mybatis.spring.boot</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>spring-boot-autoconfigure</artifactId>
+          <groupId>org.springframework.boot</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>spring-boot-starter</artifactId>
+          <groupId>org.springframework.boot</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -127,6 +170,26 @@
           <artifactId>swagger-models</artifactId>
           <groupId>io.swagger</groupId>
         </exclusion>
+        <exclusion>
+          <artifactId>byte-buddy</artifactId>
+          <groupId>net.bytebuddy</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>spring-aop</artifactId>
+          <groupId>org.springframework</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>spring-beans</artifactId>
+          <groupId>org.springframework</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>spring-context</artifactId>
+          <groupId>org.springframework</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-api</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -143,6 +206,12 @@
       <groupId>io.swagger</groupId>
       <artifactId>swagger-models</artifactId>
       <version>1.5.21</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>slf4j-api</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.belerweb/pinyin4j -->
     <!--    使用来处理中文转换成拼音-->
@@ -151,40 +220,24 @@
       <artifactId>pinyin4j</artifactId>
       <version>2.5.1</version>
     </dependency>
-
-    <!--    导入xml或properties配置-->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-configuration-processor</artifactId>
-      <optional>true</optional>
-    </dependency>
     <!-- https://mvnrepository.com/artifact/com.belerweb/pinyin4j -->
   </dependencies>
-
-  <profiles>
-    <profile>
-      <id>dev</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <project.active>dev</project.active>
-      </properties>
-    </profile>
-    <profile>
-      <id>prod</id>
-      <properties>
-        <project.active>prod</project.active>
-      </properties>
-    </profile>
-  </profiles>
-
 
   <build>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <encoding>UTF-8</encoding>
+        </configuration>
       </plugin>
     </plugins>
   </build>
