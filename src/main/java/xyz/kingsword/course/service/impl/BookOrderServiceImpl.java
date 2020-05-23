@@ -38,6 +38,7 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -453,6 +454,10 @@ public class BookOrderServiceImpl implements BookOrderService {
         ss[4] = "数量";
         ss[5] = "总价";
         Workbook workbook = new HSSFWorkbook();
+//        获取该学期全部订单视图
+        List<BookOrderVo> bookOrderVos = bookOrderMapper.select(BookOrderSelectParam.builder().semesterId(param.getSemester()).build());
+        //获得该年级所有班级
+        List<Classes> Allclasses = classesMapper.select(ClassesSelectParam.builder().grade(param.getGrade()).build());
         List<Speciality> specialities = specialityMapper.findClassBySpeciality(param.isRb() == true ? SpecialityEnum.SOFTWARE_ENGINEERING.getCode() : SpecialityEnum.JUNIOR_COLLEGE.getCode());
         for (Speciality speciality : specialities) {
             int i = 0;
@@ -462,7 +467,9 @@ public class BookOrderServiceImpl implements BookOrderService {
             ClassesSelectParam classesParam = new ClassesSelectParam();
             classesParam.setGrade(param.getGrade());
             classesParam.setSpeciality(speciality.getId());
-            List<Classes> classes = classesMapper.selectByGradeAndSpec(classesParam);
+//            List<Classes> classes = classesMapper.selectByGradeAndSpec(classesParam);
+            //筛选出该方向的所有班级
+            List<Classes> classes = Allclasses.stream().filter((v) -> v.getSpeciality() == speciality.getId()).collect(Collectors.toList());
             CellStyle style = getBaseCellStyle(workbook);
             for (Classes aClass : classes) {
                 int sum = 0;
@@ -480,35 +487,68 @@ public class BookOrderServiceImpl implements BookOrderService {
                     cell.setCellValue(ss[j]);
                 }
 //                根据班级查询课程
-                List<Course> courses = courseMapper.selectCourseByClassName(aClass.getClassname(), param.getSemester());
-                for (Course course : courses) {
-                    List<Book> books = bookService.getTextBook(course.getId());
-                    for (Book book : books) {
-                        double price = book.getPrice();
-                        String bookName = book.getName();
-                        int count = bookOrderMapper.getClassBookCount(book.getId(), aClass.getClassname());
-                        Row bookRow = sheet.createRow(i++);
-                        Cell cell1 = bookRow.createCell(0);
-                        cell1.setCellStyle(style);
-                        cell1.setCellValue(bookNum++);
-                        Cell cell2 = bookRow.createCell(1);
-                        cell2.setCellStyle(style);
-                        cell2.setCellValue(bookName);
-                        Cell cell3 = bookRow.createCell(2);
-                        cell3.setCellStyle(style);
-                        cell3.setCellValue(price);
-                        Cell cell4 = bookRow.createCell(3);
-                        cell4.setCellStyle(style);
-                        cell4.setCellValue("本");
-                        Cell cell5 = bookRow.createCell(4);
-                        cell5.setCellStyle(style);
-                        cell5.setCellValue(count);
-                        Cell cell6 = bookRow.createCell(5);
-                        cell6.setCellStyle(style);
-                        cell6.setCellValue(price * count);
-                        sum += price * count;
-                    }
+//                List<Course> courses = courseMapper.selectCourseByClassName(aClass.getClassname(), param.getSemester());
+                List<String> bookNames = bookOrderVos.stream().filter((v) -> v.getClassName().equals(aClass.getClassname())).map(BookOrderVo::getName).distinct().collect(Collectors.toList());
+                for (String bookName : bookNames) {
+                    long count = bookOrderVos.stream()
+                            .filter((v)->v.getName().equals(bookName)&&v.getClassName().equals(aClass.getClassname()))
+                            .count();
+                    double price= bookOrderVos.stream()
+                            .filter((v) -> v.getName().equals(bookName) && v.getClassName().equals(aClass.getClassname()))
+                            .findFirst().get().getPrice();
+                    Row bookRow = sheet.createRow(i++);
+                    Cell cell1 = bookRow.createCell(0);
+                    cell1.setCellStyle(style);
+                    cell1.setCellValue(bookNum++);
+                    Cell cell2 = bookRow.createCell(1);
+                    cell2.setCellStyle(style);
+                    cell2.setCellValue(bookName);
+                    Cell cell3 = bookRow.createCell(2);
+                    cell3.setCellStyle(style);
+                    cell3.setCellValue(price);
+                    Cell cell4 = bookRow.createCell(3);
+                    cell4.setCellStyle(style);
+                    cell4.setCellValue("本");
+                    Cell cell5 = bookRow.createCell(4);
+                    cell5.setCellStyle(style);
+                    cell5.setCellValue(count);
+                    Cell cell6 = bookRow.createCell(5);
+                    cell6.setCellStyle(style);
+                    cell6.setCellValue(price * count);
+                    sum += price * count;
+
                 }
+
+//                for (Course course : courses) {
+//                    List<Book> books = bookService.getTextBook(course.getId());
+//                    for (Book book : books) {
+//                        double price = book.getPrice();
+//                        String bookName = book.getName();
+//                        long count = bookOrderVos.stream()
+//                                .filter((v)->v.getBookId()==book.getId()&&v.getClassName().equals(book.getName()))
+//                                .count();
+//                        Row bookRow = sheet.createRow(i++);
+//                        Cell cell1 = bookRow.createCell(0);
+//                        cell1.setCellStyle(style);
+//                        cell1.setCellValue(bookNum++);
+//                        Cell cell2 = bookRow.createCell(1);
+//                        cell2.setCellStyle(style);
+//                        cell2.setCellValue(bookName);
+//                        Cell cell3 = bookRow.createCell(2);
+//                        cell3.setCellStyle(style);
+//                        cell3.setCellValue(price);
+//                        Cell cell4 = bookRow.createCell(3);
+//                        cell4.setCellStyle(style);
+//                        cell4.setCellValue("本");
+//                        Cell cell5 = bookRow.createCell(4);
+//                        cell5.setCellStyle(style);
+//                        cell5.setCellValue(count);
+//                        Cell cell6 = bookRow.createCell(5);
+//                        cell6.setCellStyle(style);
+//                        cell6.setCellValue(price * count);
+//                        sum += price * count;
+//                    }
+//                }
                 for (int k = 0; k < 5; k++)
                     sheet.createRow(i++);
                 Row lastRow1 = sheet.createRow(i++);

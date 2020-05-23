@@ -103,6 +103,7 @@
   <select id="getClassBookCount" resultType="int">
     select count(book_id) from book_order_view where book_id=#{bookId} and class= #{className}
   </select>
+
   <update id="setSemesterDiscount" >
     update book_order set discount =#{discount} where semester_id = #{semester}
   </update>

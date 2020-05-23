@@ -13,4 +13,6 @@ public class Classes {
     private Integer studentNum;
 
     private int grade;
+
+    private int speciality;
 }
