@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
 import org.springframework.test.context.junit4.SpringRunner;
 import xyz.kingsword.course.dao.*;
 import xyz.kingsword.course.enmu.CourseNature;
@@ -44,8 +43,6 @@ import java.util.stream.Collectors;
 public class CourseApplicationTests {
     @Autowired
     private TeacherMapper teacherMapper;
-    @Autowired
-    private EhCacheCacheManager cacheManager;
     @Autowired
     private ConfigMapper configMapper;
     @Autowired

@@ -65,7 +65,10 @@
     from classes
     where classname = #{name}
   </select>
-  <select id="selectByGradeAndSpec" parameterType="ClassesSelectParam" resultType="Classes">
-        select * from classes where grade=#{grade} and speciality=#{speciality}
+  <select id="selectByGradeAndSpec" resultType="Classes">
+    select *
+    from classes
+    where grade = #{grade}
+      and speciality = #{speciality}
   </select>
 </mapper>

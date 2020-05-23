@@ -1,13 +1,12 @@
 package xyz.kingsword.course.service.impl;
 
+import cn.hutool.cache.Cache;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.kingsword.course.dao.*;
@@ -35,12 +34,10 @@ public class BookServiceImpl implements BookService {
     @Resource
     private CourseMapper courseMapper;
     @Resource
-    private ConfigMapper configMapper;
-    @Resource
     private BookOrderService bookOrderService;
 
     @Resource(name = "book")
-    private Cache bookCache;
+    private Cache<Integer, Book> bookCache;
 
     @Override
     public List<Book> getTextBook(String courseId) {
@@ -86,7 +83,7 @@ public class BookServiceImpl implements BookService {
         List<Book> bookList = new ArrayList<>(idList.size());
         Iterator<Integer> iterator = idList.iterator();
         while (iterator.hasNext()) {
-            Book book = bookCache.get(iterator.next(), Book.class);
+            Book book = bookCache.get(iterator.next());
             if (book != null) {
                 bookList.add(book);
                 iterator.remove();
@@ -106,10 +103,10 @@ public class BookServiceImpl implements BookService {
         Iterator<Integer> iterator = collection.iterator();
         while (iterator.hasNext()) {
             int id = iterator.next();
-            Optional.ofNullable(bookCache.get(id, Book.class)).ifPresent(v -> {
-                map.put(id, v);
+            if (bookCache.containsKey(id)) {
+                map.put(id, bookCache.get(id));
                 iterator.remove();
-            });
+            }
         }
         if (!collection.isEmpty()) {
             List<Book> bookListDb = bookMapper.selectBookList(collection);
@@ -120,47 +117,19 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> getByIdList(String json) {
-        return json != null && json.length() > 2 ? getByIdList(JSONArray.parseArray(json, Integer.class)) : new ArrayList<>();
+        return json != null && json.length() > 2 ? getByIdList(JSON.parseArray(json, Integer.class)) : new ArrayList<>();
     }
 
     @Override
-    @Cacheable(cacheNames = "book", key = "#id")
     public Book getBook(int id) {
-        return bookMapper.selectBookByPrimaryKey(id);
+        return bookCache.get(id, () -> bookMapper.selectBookByPrimaryKey(id));
     }
 
 
     @Override
-    public void setDeclareStatus(boolean flag) {
-        ConditionUtil.validateTrue(!flag || !getPurchaseStatus()).orElseThrow(() -> new OperationException(ErrorEnum.OPERATION_FORBIDDEN));
-        configMapper.setDeclareStatus(flag);
-    }
-
-    @Override
-    public void setPurchaseStatus(boolean flag) {
-        ConditionUtil.validateTrue(!flag || !getDeclareStatus()).orElseThrow(() -> new OperationException(ErrorEnum.OPERATION_FORBIDDEN));
-        configMapper.setPurchaseStatus(flag);
-    }
-
-    @Override
-    public boolean getDeclareStatus() {
-        return configMapper.selectDeclareStatus();
-//        return Optional.ofNullable(configCache.get("declareStatus", Boolean.class)).orElse(false);
-    }
-
-
-    @Override
-    public boolean getPurchaseStatus() {
-        return configMapper.selectPurchaseStatus();
-//        return Optional.ofNullable(configCache.get("purchaseStatus", Boolean.class)).orElse(false);
-    }
-
-
-    @Override
-    @CachePut(cacheNames = "book", key = "#result.id")
     public Book update(Book book) {
-//        ConditionUtil.validateTrue(declareCheck()).orElseThrow(() -> new OperationException(ErrorEnum.OPERATION_TIME_FORBIDDEN));
         bookMapper.update(book);
+        bookCache.put(book.getId(), book);
         return book;
     }
 
@@ -172,7 +141,6 @@ public class BookServiceImpl implements BookService {
      */
     @Override
     @Transactional
-    @CachePut(cacheNames = "book", key = "#result.id")
     public Book insert(Book book, String courseId) {
         validateAuth(courseId);
 //        避免老师申报书籍重复
@@ -186,6 +154,7 @@ public class BookServiceImpl implements BookService {
         book.setForTeacher(courseGroupList.size());
         bookMapper.insert(book);
         int bookId = book.getId();
+        bookCache.put(bookId, book);
         courseMapper.addCourseBook(bookId, courseId);
 
         List<BookOrder> bookOrderList = new ArrayList<>(courseGroupList.size());
@@ -208,7 +177,7 @@ public class BookServiceImpl implements BookService {
             idList.forEach(v -> {
                 int flag = bookOrderService.select(BookOrderSelectParam.builder().bookId(v).build()).size();
                 ConditionUtil.validateTrue(flag == 0).orElseThrow(() -> new OperationException(ErrorEnum.ORDERED));
-                bookCache.evict(v);
+                bookCache.remove(v);
             });
             List<Integer> textBookIdList = getTextBookId(courseId);
             textBookIdList.removeAll(idList);
@@ -216,19 +185,6 @@ public class BookServiceImpl implements BookService {
         }
     }
 
-
-    /**
-     * 报教材开关验证
-     */
-    private boolean declareCheck() {
-        User user = UserUtil.getUser();
-        Integer roleId = user.getCurrentRole();
-        if (roleId != null && roleId == RoleEnum.ACADEMIC_MANAGER.getCode()) {
-            return true;
-        }
-        return getDeclareStatus();
-
-    }
 
     /**
      * 需要对教材管理进行权限控制，一个课程组只能一个人报教材，哪个老师先报就进行授权，其他人不能报，对教学部不做限制

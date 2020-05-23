@@ -1,5 +1,7 @@
 package xyz.kingsword.course.controller;
 
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,6 +14,7 @@ import xyz.kingsword.course.pojo.Book;
 import xyz.kingsword.course.pojo.Result;
 import xyz.kingsword.course.service.BookService;
 import xyz.kingsword.course.util.BookUtil;
+import xyz.kingsword.course.util.Constant;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -22,6 +25,8 @@ import java.util.List;
 public class BookController {
     @Resource
     private BookService bookService;
+    @Resource
+    private Constant constant;
 
     @RequestMapping(value = "/insert", method = RequestMethod.POST)
     @ApiOperation("新增")
@@ -88,7 +93,6 @@ public class BookController {
     }
 
 
-
     @RequestMapping(value = "/isbn", method = RequestMethod.GET)
     @ApiOperation("教材查询接口，同步远程接口信息")
     public Result<Object> queryBook(String ISBN) {
@@ -101,15 +105,14 @@ public class BookController {
     @ApiOperation("教师申报教材开关")
     @Role(RoleEnum.ACADEMIC_MANAGER)
     public Result<Object> setDeclareStatus(boolean flag) {
-        bookService.setDeclareStatus(flag);
         return new Result<>();
     }
 
     @RequestMapping(value = "/setPurchaseStatus", method = RequestMethod.GET)
-    @ApiOperation("学生订书操作开关")
+    @ApiOperation("设置学生订书操作开关")
     @Role(RoleEnum.ACADEMIC_MANAGER)
     public Result<Object> setPurchaseStatus(boolean flag) {
-        bookService.setPurchaseStatus(flag);
+        constant.setPurchaseStatus(Boolean.toString(flag));
         return new Result<>();
     }
 
@@ -117,13 +120,13 @@ public class BookController {
     @ApiOperation("查看学生订书操作开关")
     @Role(RoleEnum.ACADEMIC_MANAGER)
     public Result<Object> getPurchaseStatus() {
-        return new Result<>(bookService.getPurchaseStatus());
+        return new Result<>(Convert.toBool(constant.getPurchaseStatus()));
     }
 
     @RequestMapping(value = "/getDeclareStatus", method = RequestMethod.GET)
     @ApiOperation("查看老师报教材操作开关")
     @Role(RoleEnum.ACADEMIC_MANAGER)
     public Result<Object> getDeclareStatus() {
-        return new Result<>(bookService.getDeclareStatus());
+        return new Result<>();
     }
 }
