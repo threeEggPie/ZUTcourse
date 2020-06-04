@@ -52,16 +52,16 @@
     <result column="tea_name" jdbcType="CHAR" property="name"/>
   </resultMap>
   <insert id="insert" parameterType="xyz.kingsword.course.pojo.Course">
-    insert ignore course (id, `name`, teacher_in_charge,
-                          type, core, nature, credit, coach, coach_teacher,
-                          colleges_or_departments, examination_way, research_room,
-                          assessment_way, text_book, reference_book,
-                          homework_proportion, test_proportion, lab_proportion,
-                          attendance_proportion, performance_proportion,
-                          paper_proportion, other_proportion, exam_proportion,
-                          time_week, week_num, time_theory,
-                          time_practical, time_computer, time_lab,
-                          time_homework, time_all, theory_week, `status`)
+    insert course (id, `name`, teacher_in_charge,
+                   type, core, nature, credit, coach, coach_teacher,
+                   colleges_or_departments, examination_way, research_room,
+                   assessment_way, text_book, reference_book,
+                   homework_proportion, test_proportion, lab_proportion,
+                   attendance_proportion, performance_proportion,
+                   paper_proportion, other_proportion, exam_proportion,
+                   time_week, week_num, time_theory,
+                   time_practical, time_computer, time_lab,
+                   time_homework, time_all, theory_week, `status`)
     values (#{id,jdbcType=CHAR}, #{name,jdbcType=CHAR}, #{teacherInCharge,jdbcType=CHAR},
             #{type,jdbcType=INTEGER}, #{core,jdbcType=CHAR}, #{nature,jdbcType=INTEGER}, #{credit,jdbcType=INTEGER},
             #{coach,jdbcType=CHAR}, #{coachTeacher,jdbcType=CHAR},
@@ -219,11 +219,18 @@
            join teacher on course.book_manager = teacher.id
     where course.id = #{id}
       and course.`status` = 0;
- </select>
+  </select>
 
 
-    <select id="selectCourseByClassName" resultMap="BaseResultMap">
-        select * from course where id in (select cou_id from sortcourse where class like "%"#{className}"%" and semester_id=#{semester})
-    </select>
+  <select id="selectCourseByClassName" resultMap="BaseResultMap">
+    select *
+    from course
+    where id in (select cou_id from sortcourse where class like "%"#{className}"%" and semester_id=#{semester})
+  </select>
+  <select id="courseRepeated" resultType="java.lang.Integer">
+    select count(id)
+    from course
+    where id = #{courseId}
+  </select>
 
 </mapper>

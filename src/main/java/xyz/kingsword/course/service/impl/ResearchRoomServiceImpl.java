@@ -4,7 +4,7 @@ package xyz.kingsword.course.service.impl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import xyz.kingsword.course.VO.TeacherVo;
+import xyz.kingsword.course.vo.TeacherVo;
 import xyz.kingsword.course.dao.ResearchRoomMapper;
 import xyz.kingsword.course.dao.TeacherMapper;
 import xyz.kingsword.course.pojo.ResearchRoom;
@@ -44,6 +44,9 @@ public class ResearchRoomServiceImpl implements ResearchRoomService {
     public List<ResearchRoom> select() {
         List<ResearchRoom> researchRoomList = researchroomMapper.select();
         List<String> nameList = researchRoomList.stream().map(ResearchRoom::getName).collect(Collectors.toList());
+        if (nameList.isEmpty()) {
+            return new ArrayList<>();
+        }
         List<Teacher> teacherList = teacherMapper.getByResearchRoom(nameList);
         List<TeacherVo> teacherVoList = new ArrayList<>(teacherList.size());
         teacherList.parallelStream().forEach(v -> {
@@ -52,7 +55,7 @@ public class ResearchRoomServiceImpl implements ResearchRoomService {
             teacherVoList.add(teacherVo);
         });
 
-        Map<String, List<TeacherVo>> map =teacherVoList
+        Map<String, List<TeacherVo>> map = teacherVoList
                 .parallelStream()
                 .collect(Collectors.groupingBy(TeacherVo::getResearchRoom));
         researchRoomList.forEach(v -> v.setTeacherVoList(map.get(v.getName())));

@@ -28,15 +28,22 @@
     where classname = #{classname,jdbcType=CHAR}
   </update>
   <select id="select" resultMap="BaseResultMap">
-    select *
-    from classes
+    select classes.*
+    from classes,speciality
     <where>
       <if test="className !=null and className !=''">
         classname=#{className}
       </if>
       <if test="grade >0">
-        grade=#{grade}
+        and grade=#{grade}
       </if>
+      <if test="degree == 1">
+        and speciality.parent_id &lt; 11
+      </if>
+      <if test="degree == 2">
+        and speciality.parent_id = 11
+      </if>
+      and classes.speciality=speciality.id
     </where>
     order by grade,classname
   </select>
@@ -64,11 +71,5 @@
     select *
     from classes
     where classname = #{name}
-  </select>
-  <select id="selectByGradeAndSpec" resultType="Classes">
-    select *
-    from classes
-    where grade = #{grade}
-      and speciality = #{speciality}
   </select>
 </mapper>

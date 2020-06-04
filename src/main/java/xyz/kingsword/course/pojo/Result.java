@@ -3,11 +3,14 @@ package xyz.kingsword.course.pojo;
 import lombok.Data;
 import xyz.kingsword.course.enmu.ErrorEnum;
 
+import java.sql.ResultSet;
+
 @Data
 public class Result<T> {
     private int code;
     private String msg;
     private T data;
+    private static Result<Object> result = new Result<>();
 
     public Result(int code, String msg) {
         this.code = code;
@@ -26,5 +29,13 @@ public class Result<T> {
 
     public Result() {
         code = 200;
+    }
+
+    /**
+     * 静态空result，避免频繁new对象
+     * @return result
+     */
+    public static Result<Object> emptyResult() {
+        return Result.result;
     }
 }

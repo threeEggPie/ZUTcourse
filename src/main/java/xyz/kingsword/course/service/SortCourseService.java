@@ -2,7 +2,7 @@ package xyz.kingsword.course.service;
 
 import com.github.pagehelper.PageInfo;
 import org.apache.poi.ss.usermodel.Workbook;
-import xyz.kingsword.course.VO.SortCourseVo;
+import xyz.kingsword.course.vo.SortCourseVo;
 import xyz.kingsword.course.pojo.SortCourse;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;

@@ -13,7 +13,7 @@
     <result column="flag" jdbcType="INTEGER" property="flag"/>
     <result column="merged_id" jdbcType="CHAR" property="mergedId"/>
   </resultMap>
-  <resultMap id="SortCourseViewMap" type="xyz.kingsword.course.VO.SortCourseVo">
+  <resultMap id="SortCourseViewMap" type="xyz.kingsword.course.vo.SortCourseVo">
     <id column="id" jdbcType="INTEGER" property="id"/>
     <result column="tea_id" jdbcType="CHAR" property="teacherId"/>
     <result column="teacher_name" jdbcType="CHAR" property="teacherName"/>
@@ -86,20 +86,10 @@
   </select>
 
   <select id="getCourseHistory" resultMap="SortCourseViewMap">
-    SELECT sortcourse_id,
-           tea_id,
-           teacher_name,
-           cou_id,
-           course_name,
-           nature,
-           text_book,
-           reference_book,
-           student_num,
-           semester_id,
-           class
-    from sortcourse_view
-    where cou_id = #{courseId}
-      and semester_id &lt; #{semesterId}
+    SELECT sortcourse_id, tea_id, teacher_name, cou_id, course_name, nature, text_book, reference_book, student_num, semester_id, class
+    FROM sortcourse_view, semester
+    WHERE cou_id = #{courseId}
+      AND semester.id = semester_id
   </select>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="xyz.kingsword.course.pojo.SortCourse"
           useGeneratedKeys="true">

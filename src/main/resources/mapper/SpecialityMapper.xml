@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="xyz.kingsword.course.dao.SpecialityMapper">
-    <select id="findClassBySpeciality" parameterType="int" resultType="xyz.kingsword.course.pojo.Speciality">
-        select * from speciality where parent_id=#{parent}
-    </select>
+  <select id="findClassBySpeciality" parameterType="int" resultType="xyz.kingsword.course.pojo.Speciality">
+    select *
+    from speciality
+    where parent_id = #{parent}
+  </select>
+  <select id="selectAll" resultType="xyz.kingsword.course.pojo.Speciality">
+    select *
+    from speciality
+  </select>
+  <select id="selectSpeciality" resultType="xyz.kingsword.course.pojo.Speciality">
+    select *
+    from speciality
+    where parent_id &gt; 0
+  </select>
 
 
 </mapper>

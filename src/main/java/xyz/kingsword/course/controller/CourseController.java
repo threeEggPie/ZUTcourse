@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import xyz.kingsword.course.VO.CourseVo;
+import xyz.kingsword.course.vo.CourseVo;
 import xyz.kingsword.course.annocations.Role;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.pojo.Course;
@@ -17,6 +17,7 @@ import xyz.kingsword.course.pojo.param.CourseSelectParam;
 import xyz.kingsword.course.service.CourseService;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
 @RestController
@@ -67,6 +68,7 @@ public class CourseController {
         PageInfo<CourseVo> pageInfo = courseService.select(param);
         return new Result<>(pageInfo);
     }
+
     @RequestMapping(value = "/resetBookManager", method = RequestMethod.GET)
     @ApiOperation("清空教材管理权限")
     @Role(RoleEnum.TEACHER)
@@ -74,4 +76,12 @@ public class CourseController {
         courseService.resetBookManager(courseId);
         return new Result<>();
     }
+
+    @PutMapping("/import")
+    @ApiOperation("文件上传")
+    @Role
+    public Result<Object> importData(HttpServletRequest request) {
+        return Result.emptyResult();
+    }
+
 }

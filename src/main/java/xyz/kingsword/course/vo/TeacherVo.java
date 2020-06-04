@@ -1,4 +1,4 @@
-package xyz.kingsword.course.VO;
+package xyz.kingsword.course.vo;
 
 import com.alibaba.fastjson.JSONArray;
 import com.fasterxml.jackson.annotation.JsonIgnore;

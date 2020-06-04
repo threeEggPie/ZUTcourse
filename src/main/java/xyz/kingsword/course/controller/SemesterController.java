@@ -15,6 +15,7 @@ import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.pojo.Result;
 import xyz.kingsword.course.pojo.Semester;
 import xyz.kingsword.course.service.SemesterService;
+import xyz.kingsword.course.util.TimeUtil;
 
 @Api(tags = "学期相关类")
 @RestController
@@ -28,7 +29,7 @@ public class SemesterController {
     @RequestMapping(value = "/insert", method = RequestMethod.POST)
     @ApiOperation("新增学期")
     @Role(RoleEnum.ADMIN)
-    public Result addSemester(@RequestBody Semester semester) {
+    public Result<Object> addSemester(@RequestBody Semester semester) {
         semesterService.addSemester(semester);
         return new Result<>();
     }
@@ -36,14 +37,14 @@ public class SemesterController {
     @RequestMapping(value = "/update", method = RequestMethod.PUT)
     @ApiOperation("仅修改开始时间结束时间")
     @Role(RoleEnum.ADMIN)
-    public Result updateSemester(@RequestBody Semester Semester) {
-        semesterService.updateById(Semester);
-        return new Result();
+    public Result<Object> updateSemester(@RequestBody Semester semester) {
+        semesterService.updateById(semester);
+        return new Result<>();
     }
 
     @RequestMapping(value = "/getAll", method = RequestMethod.GET)
     @ApiOperation("获取全部学期")
-    public Result getAllSemester() {
+    public Result<Object> getAllSemester() {
         PageInfo<Semester> list = semesterService.getAllSemester(1, 10);
         return new Result<>(list);
     }
@@ -54,7 +55,7 @@ public class SemesterController {
             @ApiImplicitParam(name = "pageNum", paramType = "query", dataType = "int", required = true),
             @ApiImplicitParam(name = "pageSize", paramType = "query", dataType = "int", required = true)
     })
-    public Result getFutureSemester(int pageNum, int pageSize) {
+    public Result<Object> getFutureSemester(int pageNum, int pageSize) {
         PageInfo<Semester> list = semesterService.getFutureSemester(pageNum, pageSize);
         return new Result<>(list);
     }

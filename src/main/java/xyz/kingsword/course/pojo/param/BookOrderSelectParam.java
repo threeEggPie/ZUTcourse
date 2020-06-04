@@ -13,4 +13,10 @@ public class BookOrderSelectParam {
     private String semesterId;
     private String className;
     private int bookId;
+
+    private int grade;
+    /**
+     * 学历筛选 0全部，1本科 2专科
+     */
+    private int degree;
 }

@@ -4,40 +4,34 @@ package xyz.kingsword.course.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.StrBuilder;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.system.ApplicationHome;
 import org.springframework.stereotype.Service;
-import xyz.kingsword.course.VO.BookOrderVo;
-import xyz.kingsword.course.VO.CourseGroupOrderVo;
-import xyz.kingsword.course.VO.StudentVo;
 import xyz.kingsword.course.dao.*;
 import xyz.kingsword.course.enmu.CourseNature;
 import xyz.kingsword.course.enmu.ErrorEnum;
-import xyz.kingsword.course.enmu.RoleEnum;
-import xyz.kingsword.course.enmu.SpecialityEnum;
 import xyz.kingsword.course.exception.DataException;
 import xyz.kingsword.course.exception.OperationException;
 import xyz.kingsword.course.pojo.*;
+import xyz.kingsword.course.pojo.DO.SemesterDiscountDo;
 import xyz.kingsword.course.pojo.param.*;
 import xyz.kingsword.course.service.BookOrderService;
 import xyz.kingsword.course.service.BookService;
 import xyz.kingsword.course.util.*;
+import xyz.kingsword.course.vo.*;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -51,11 +45,7 @@ public class BookOrderServiceImpl implements BookOrderService {
     @Resource
     private BookService bookService;
     @Resource
-    private SpecialityMapper specialityMapper;
-    @Resource
     private ClassesMapper classesMapper;
-    @Resource
-    private CourseMapper courseMapper;
 
     /**
      * @param bookOrderList 构建好的订单beenList
@@ -125,7 +115,6 @@ public class BookOrderServiceImpl implements BookOrderService {
                             bookOrder.setCourseId(courseId);
                             bookOrderList.add(bookOrder);
                         }
-//                }
                     }
                 }
             }
@@ -146,15 +135,17 @@ public class BookOrderServiceImpl implements BookOrderService {
     @Override
     public List<CourseGroupOrderVo> courseGroupOrder(String courseId, String semesterId) {
         List<CourseGroup> courseGroupList = courseGroupMapper.selectDistinct(CourseGroupSelectParam.builder().semesterId(semesterId).courseId(courseId).build());
-        if (courseGroupList.isEmpty())
+        if (courseGroupList.isEmpty()) {
             return Collections.emptyList();
+        }
         List<Integer> bookIdList = courseGroupList.get(0).getTextBook();
         Map<Integer, Book> bookMap = bookService.getMap(bookIdList);
         ConditionUtil.validateTrue(bookMap.size() == bookIdList.size()).orElseThrow(DataException::new);
 
         List<BookOrderVo> bookOrderVoList = bookOrderMapper.courseGroupOrderInfo(courseId, semesterId);
-        if (bookOrderVoList.isEmpty())
-            return new ArrayList<>();
+        if (bookOrderVoList.isEmpty()) {
+            return Collections.emptyList();
+        }
         Map<Integer, List<BookOrderVo>> bookToOrderMap = bookOrderVoList.parallelStream().collect(Collectors.groupingBy(BookOrderVo::getBookId));
         List<CourseGroupOrderVo> courseGroupOrderVoList = new ArrayList<>(bookIdList.size());
         for (Integer bookId : bookIdList) {
@@ -249,10 +240,6 @@ public class BookOrderServiceImpl implements BookOrderService {
                 .parallelStream()
                 .filter(v -> v.getClassName() != null)
                 .collect(Collectors.groupingBy(BookOrderVo::getBookId, Collectors.groupingBy(BookOrderVo::getClassName, Collectors.counting())));
-        for (Integer integer : bookIdToClass.keySet()) {
-            System.out.println("bookId: " + integer);
-            bookIdToClass.get(integer).forEach((k, v) -> System.out.println(k + " " + v));
-        }
         Map<String, List<CourseGroup>> courseMap = courseGroupList.parallelStream().collect(Collectors.groupingBy(CourseGroup::getCouId));
         List<Integer> idList = courseGroupList.parallelStream().flatMap(v -> v.getTextBook().stream()).collect(Collectors.toList());
         if (idList.isEmpty()) {
@@ -270,11 +257,10 @@ public class BookOrderServiceImpl implements BookOrderService {
             List<CourseGroup> courseGroupListItem = courseMap.get(courseId);
             String[] strings = new String[length];
 //            数据初始化为空字符串，避免导出null
-            Arrays.fill(strings, "");
+            Arrays.fill(strings, StrUtil.EMPTY);
             StrBuilder classStrBuilder = StrBuilder.create();
             StrBuilder teacherStrBuilder = StrBuilder.create();
             for (CourseGroup courseGroup : courseGroupListItem) {
-                System.out.println();
                 String className = courseGroup.getClassName().replace(" ", "\n");
                 classStrBuilder.append(className).append("\n");
                 teacherStrBuilder.append(courseGroup.getTeacherName()).append("\n");
@@ -324,7 +310,7 @@ public class BookOrderServiceImpl implements BookOrderService {
                 strings[12] = teacherStrBuilder.toStringAndReset();
                 strings[13] = forTeacher.toStringAndReset();
             }
-            strings[14] = bookIdList.size() > 0 ? "是" : "否";
+            strings[14] = bookIdList.isEmpty() ? "否" : "是";
             data[i++] = strings;
         }
         return data;
@@ -336,16 +322,11 @@ public class BookOrderServiceImpl implements BookOrderService {
         font.setFontName("宋体");
         font.setFontHeightInPoints((short) 11);
         CellStyle cellStyle = workbook.createCellStyle();
-        cellStyle.setWrapText(true);//自动换行
-        cellStyle.setAlignment(HorizontalAlignment.CENTER);//水平居中
-        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);//垂直居中
+        cellStyle.setWrapText(true);
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         cellStyle.setFont(font);
         return cellStyle;
-    }
-
-    @Override
-    public Workbook exportSingleRecord(String studentId) {
-        return null;
     }
 
     @Override
@@ -398,26 +379,19 @@ public class BookOrderServiceImpl implements BookOrderService {
         String[][] data = new String[collect.size() + 1][7];
         Iterator<Map.Entry<Integer, List<BookOrderVo>>> entries = collect.entrySet().iterator();
         int i = 1;
-        String[] head = new String[7];
-        head[0] = "序号";
-        head[1] = "课程号";
-        head[2] = "书名";
-        head[3] = "作者";
-        head[4] = "出版社";
-        head[5] = "ISBN号";
-        head[6] = "订购数量";
+        String[] head = {"序号", "课程号", "书名", "作者", "出版社", "ISBN号", "订购数量"};
         data[0] = head;
         while (entries.hasNext()) {
             Map.Entry<Integer, List<BookOrderVo>> entry = entries.next();
             String[] strings = new String[7];
             Book book = bookService.getBook(entry.getKey());
-            strings[0] = i + "";
+            strings[0] = String.valueOf(i);
             strings[1] = entry.getValue().get(0).getCourseId();
             strings[2] = book.getName();
             strings[3] = book.getAuthor();
             strings[4] = book.getPublish();
             strings[5] = book.getIsbn();
-            strings[6] = entry.getValue().size() + "";
+            strings[6] = String.valueOf(entry.getValue().size());
             data[i++] = strings;
         }
         Workbook workbook = new XSSFWorkbook();
@@ -434,227 +408,359 @@ public class BookOrderServiceImpl implements BookOrderService {
         return workbook;
     }
 
-    /**
-     * 导出年级订书记录
-     *
-     * @param param
-     * @return
-     */
     @Override
-    public Workbook exportGradeOrder(ExportGradeBookParam param) {
-        String title = "中原工学院软件学院教材出库单";
-        String[] ss = new String[6];
-        ss[0] = "序号";
-        ss[1] = "教材名称";
-        ss[2] = "单价（元）";
-        ss[3] = "单位";
-        ss[4] = "数量";
-        ss[5] = "总价";
-        Workbook workbook = new HSSFWorkbook();
-//        获取该学期全部订单视图
-        List<BookOrderVo> bookOrderVos = bookOrderMapper.select(BookOrderSelectParam.builder().semesterId(param.getSemester()).build());
-        //获得该年级所有班级
-        List<Classes> Allclasses = classesMapper.select(ClassesSelectParam.builder().grade(param.getGrade()).build());
-        List<Speciality> specialities = specialityMapper.findClassBySpeciality(param.isRb() == true ? SpecialityEnum.SOFTWARE_ENGINEERING.getCode() : SpecialityEnum.JUNIOR_COLLEGE.getCode());
-        for (Speciality speciality : specialities) {
-            int i = 0;
-            String sheetName = param.getGrade() + "级" + speciality.getName();
-            Sheet sheet = workbook.createSheet(sheetName);
-//            根据专业方向查询班级
-            ClassesSelectParam classesParam = new ClassesSelectParam();
-            classesParam.setGrade(param.getGrade());
-            classesParam.setSpeciality(speciality.getId());
-//            List<Classes> classes = classesMapper.selectByGradeAndSpec(classesParam);
-            //筛选出该方向的所有班级
-            List<Classes> classes = Allclasses.stream().filter((v) -> v.getSpeciality() == speciality.getId()).collect(Collectors.toList());
-            CellStyle style = getBaseCellStyle(workbook);
-            for (Classes aClass : classes) {
-                int sum = 0;
-                int bookNum = 1;
-                new CellRangeAddress(i, i, 0, 8);
-                Row row = sheet.createRow(i++);
-                row.createCell(0).setCellValue(title);
-                Row row1 = sheet.createRow(i++);
-                row1.createCell(0).setCellValue(aClass.getClassname() + TimeUtil.getSemesterName(param.getSemester()));
-                Row row2 = sheet.createRow(i++);
-//                表头
-                for (int j = 0; j < 6; j++) {
-                    Cell cell = row2.createCell(j);
-                    cell.setCellStyle(style);
-                    cell.setCellValue(ss[j]);
-                }
-//                根据班级查询课程
-//                List<Course> courses = courseMapper.selectCourseByClassName(aClass.getClassname(), param.getSemester());
-                List<String> bookNames = bookOrderVos.stream().filter((v) -> v.getClassName().equals(aClass.getClassname())).map(BookOrderVo::getName).distinct().collect(Collectors.toList());
-                for (String bookName : bookNames) {
-                    long count = bookOrderVos.stream()
-                            .filter((v)->v.getName().equals(bookName)&&v.getClassName().equals(aClass.getClassname()))
-                            .count();
-                    double price= bookOrderVos.stream()
-                            .filter((v) -> v.getName().equals(bookName) && v.getClassName().equals(aClass.getClassname()))
-                            .findFirst().get().getPrice();
-                    Row bookRow = sheet.createRow(i++);
-                    Cell cell1 = bookRow.createCell(0);
-                    cell1.setCellStyle(style);
-                    cell1.setCellValue(bookNum++);
-                    Cell cell2 = bookRow.createCell(1);
-                    cell2.setCellStyle(style);
-                    cell2.setCellValue(bookName);
-                    Cell cell3 = bookRow.createCell(2);
-                    cell3.setCellStyle(style);
-                    cell3.setCellValue(price);
-                    Cell cell4 = bookRow.createCell(3);
-                    cell4.setCellStyle(style);
-                    cell4.setCellValue("本");
-                    Cell cell5 = bookRow.createCell(4);
-                    cell5.setCellStyle(style);
-                    cell5.setCellValue(count);
-                    Cell cell6 = bookRow.createCell(5);
-                    cell6.setCellStyle(style);
-                    cell6.setCellValue(price * count);
-                    sum += price * count;
-
-                }
-
-//                for (Course course : courses) {
-//                    List<Book> books = bookService.getTextBook(course.getId());
-//                    for (Book book : books) {
-//                        double price = book.getPrice();
-//                        String bookName = book.getName();
-//                        long count = bookOrderVos.stream()
-//                                .filter((v)->v.getBookId()==book.getId()&&v.getClassName().equals(book.getName()))
-//                                .count();
-//                        Row bookRow = sheet.createRow(i++);
-//                        Cell cell1 = bookRow.createCell(0);
-//                        cell1.setCellStyle(style);
-//                        cell1.setCellValue(bookNum++);
-//                        Cell cell2 = bookRow.createCell(1);
-//                        cell2.setCellStyle(style);
-//                        cell2.setCellValue(bookName);
-//                        Cell cell3 = bookRow.createCell(2);
-//                        cell3.setCellStyle(style);
-//                        cell3.setCellValue(price);
-//                        Cell cell4 = bookRow.createCell(3);
-//                        cell4.setCellStyle(style);
-//                        cell4.setCellValue("本");
-//                        Cell cell5 = bookRow.createCell(4);
-//                        cell5.setCellStyle(style);
-//                        cell5.setCellValue(count);
-//                        Cell cell6 = bookRow.createCell(5);
-//                        cell6.setCellStyle(style);
-//                        cell6.setCellValue(price * count);
-//                        sum += price * count;
-//                    }
-//                }
-                for (int k = 0; k < 5; k++)
-                    sheet.createRow(i++);
-                Row lastRow1 = sheet.createRow(i++);
-                lastRow1.createCell(1).setCellValue("合计");
-                lastRow1.createCell(5).setCellValue(sum);
-                Row lastRow2 = sheet.createRow(i++);
-                lastRow2.createCell(0).setCellValue("用途：学生用书");
-                Row lastRow3 = sheet.createRow(i++);
-                lastRow3.createCell(0).setCellValue("执单人：\t领书人：\t验收人：\t");
-            }
+    public Workbook exportOutBoundData(int grade, String semesterId, int degree) {
+//      开始构建excel
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/OutboundDetails.xlsx");
+        Workbook mould;
+        try {
+            mould = new XSSFWorkbook(inputStream);
+            inputStream.close();
+        } catch (IOException e) {
+            log.error("OutboundDetails is not fount");
+            return null;
         }
+        Sheet mouldSheet = mould.getSheetAt(0);
+        Workbook workbook = new XSSFWorkbook();
+        CellStyle cellStyle0 = workbook.createCellStyle();
+        cellStyle0.cloneStyleFrom(mouldSheet.getRow(0).getCell(0).getCellStyle());
 
+        CellStyle cellStyle1 = workbook.createCellStyle();
+        cellStyle1.cloneStyleFrom(mouldSheet.getRow(1).getCell(0).getCellStyle());
+
+        CellStyle cellStyle2 = workbook.createCellStyle();
+        cellStyle2.cloneStyleFrom(mouldSheet.getRow(2).getCell(0).getCellStyle());
+
+        CellStyle cellStyle3 = workbook.createCellStyle();
+        cellStyle3.cloneStyleFrom(mouldSheet.getRow(3).getCell(0).getCellStyle());
+
+        CellStyle cellStyle4 = workbook.createCellStyle();
+        cellStyle4.cloneStyleFrom(mouldSheet.getRow(3).getCell(1).getCellStyle());
+
+        CellStyle cellStyle5 = workbook.createCellStyle();
+        cellStyle5.cloneStyleFrom(mouldSheet.getRow(22).getCell(1).getCellStyle());
+
+        Map<Integer, List<OutBoundDataVo>> map = renderData(grade, semesterId, degree);
+
+        for (Integer specialityId : map.keySet()) {
+            Sheet sheet = workbook.createSheet(SpecialityUtil.getSpeciality(specialityId).getName());
+//      设置列宽
+            for (int i = 0; i < 6; i++) {
+                sheet.setColumnWidth(i, mouldSheet.getColumnWidth(i));
+            }
+//      设置页边距
+            for (short i = 0; i < 4; i++) {
+                sheet.setMargin(i, mouldSheet.getMargin(i));
+            }
+
+            String[] header = {"序号", "教材名称", "单价(元)", "单位", "数量", "总价"};
+            String semesterName = TimeUtil.getSemesterName(semesterId);
+            int semesterNum = TimeUtil.getSemesterNum(grade, semesterId);
+            String date = LocalDate.now().toString();
+
+            Map<String, List<OutBoundDataVo>> classOutBoundData = map.get(specialityId).stream()
+                    .collect(Collectors.groupingBy(OutBoundDataVo::getClassName));
+//      以班级为单位循环输出
+            Set<String> classNameSet = new TreeSet<>(classOutBoundData.keySet());
+            int i = -1;
+            for (String className : classNameSet) {
+                i++;
+                Row row0 = sheet.createRow(i * 24);
+                row0.setHeight(mouldSheet.getRow(0).getHeight());
+                Cell cell00 = row0.createCell(0);
+                cell00.setCellValue("中原工学院软件学院教材出库单");
+                cell00.setCellStyle(cellStyle0);
+
+                Row row1 = sheet.createRow(1 + i * 24);
+                row1.setHeight(mouldSheet.getRow(1).getHeight());
+                Cell cell10 = row1.createCell(0);
+                cell10.setCellValue(StrUtil.format("{} {} (总第{}学期)      {}", className, semesterName, semesterNum, date));
+                cell10.setCellStyle(cellStyle1);
+
+                Row row2 = sheet.createRow(2 + i * 24);
+                row2.setHeight(mouldSheet.getRow(2).getHeight());
+                int startCell = 0, endCell = 5, startRow1 = 0, startRow2 = 1, startRow3 = 22, startRow4 = 23;
+//          序号教材名称单价
+                for (int j = 0; j < header.length; j++) {
+                    Cell cell = row2.createCell(j);
+                    cell.setCellValue(header[j]);
+                    cell.setCellStyle(cellStyle2);
+                }
+                List<OutBoundDataVo> outBoundDataVoList = classOutBoundData.get(className);
+                int k = 0;
+                for (int j = 3 + i * 24; j < 21 + i * 24; j++) {
+                    Row row = sheet.createRow(j);
+                    row.setHeight(mouldSheet.getRow(j - i * 24).getHeight());
+                    Cell cell0 = row.createCell(0);
+                    cell0.setCellStyle(cellStyle3);
+
+                    Cell cell1 = row.createCell(1);
+                    cell1.setCellStyle(cellStyle4);
+
+                    Cell cell2 = row.createCell(2);
+                    cell2.setCellStyle(cellStyle3);
+
+                    Cell cell3 = row.createCell(3);
+                    cell3.setCellStyle(cellStyle3);
+
+                    Cell cell4 = row.createCell(4);
+                    cell4.setCellStyle(cellStyle3);
+
+                    Cell cell5 = row.createCell(5);
+                    cell5.setCellStyle(cellStyle3);
+
+                    OutBoundDataVo outBoundDataVo;
+                    if (k < outBoundDataVoList.size()) {
+                        outBoundDataVo = outBoundDataVoList.get(k++);
+                        cell0.setCellValue(j - 2 - i * 24);
+                        cell1.setCellValue(outBoundDataVo.getBookName());
+                        cell2.setCellValue(outBoundDataVo.getPrice());
+                        cell3.setCellValue("本");
+                        cell4.setCellValue(outBoundDataVo.getNumber());
+                        cell5.setCellFormula(StrUtil.format("C{}*E{}", j + 1, j + 1));
+                    }
+                }
+
+                Row row21 = sheet.createRow(21 + i * 24);
+                row21.setHeight(mouldSheet.getRow(21).getHeight());
+                row21.createCell(0).setCellStyle(cellStyle4);
+                Cell cell211 = row21.createCell(1);
+                cell211.setCellValue("合计：");
+                cell211.setCellStyle(cellStyle4);
+
+                Cell cell212 = row21.createCell(2);
+                cell212.setCellFormula(StrUtil.format("SUM(C{}:C{})", 4 + i * 24, 21 + i * 24));
+                cell212.setCellStyle(cellStyle3);
+
+                Cell cell215 = row21.createCell(5);
+                cell215.setCellFormula(StrUtil.format("SUM(F{}:F{})", 4 + i * 24, 21 + i * 24));
+                cell215.setCellStyle(cellStyle3);
+
+                Row row22 = sheet.createRow(22 + i * 24);
+                row22.setHeight(mouldSheet.getRow(22).getHeight());
+                Cell cell220 = row22.createCell(0);
+                cell220.setCellValue("用途：学生用书");
+                cell220.setCellStyle(cellStyle5);
+
+                Row row23 = sheet.createRow(23 + i * 24);
+                row23.setHeight((short) 1000);
+                Cell cell230 = row23.createCell(0);
+                cell230.setCellValue("执单人：                                 领书人：                                          验收人：");
+                cell230.setCellStyle(cellStyle5);
+
+                sheet.addMergedRegion(new CellRangeAddress(startRow1 + i * 24, startRow1 + i * 24, startCell, endCell));
+                sheet.addMergedRegion(new CellRangeAddress(startRow2 + i * 24, startRow2 + i * 24, startCell, endCell));
+                sheet.addMergedRegion(new CellRangeAddress(startRow3 + i * 24, startRow3 + i * 24, startCell, endCell));
+                sheet.addMergedRegion(new CellRangeAddress(startRow4 + i * 24, startRow4 + i * 24, startCell, endCell));
+            }
+//        合并单元格添加边框
+            sheet.getMergedRegions().forEach(v -> {
+                RegionUtil.setBorderBottom(BorderStyle.THIN, v, sheet);
+                RegionUtil.setBorderLeft(BorderStyle.THIN, v, sheet);
+                RegionUtil.setBorderRight(BorderStyle.THIN, v, sheet);
+                RegionUtil.setBorderTop(BorderStyle.THIN, v, sheet);
+            });
+        }
         return workbook;
+    }
+
+    /**
+     * @return [专业id，出库数据]
+     */
+    private Map<Integer, List<OutBoundDataVo>> renderData(int grade, String semesterId, int degree) {
+        Set<String> classNameSet = classesMapper
+                .select(ClassesSelectParam.builder().grade(grade).degree(degree).build())
+                .stream().map(Classes::getClassname)
+                .collect(Collectors.toSet());
+
+        List<BookOrderVo> allOrderList = bookOrderMapper.select(BookOrderSelectParam.builder().semesterId(semesterId).build())
+                .stream()
+                .filter(v -> classNameSet.contains(v.getClassName()))
+                .collect(Collectors.toList());
+
+//      [班级，个人订单]
+        Map<String, List<BookOrderVo>> classMap = allOrderList.stream().collect(Collectors.groupingBy(BookOrderVo::getClassName));
+//      [专业方向，出库数据]
+        Map<Integer, List<OutBoundDataVo>> specialityOutBoundDataMap = new HashMap<>(6);
+        Collection<Integer> specialityIdColl = SpecialityUtil.getAllId();
+        specialityIdColl.forEach(v -> specialityOutBoundDataMap.put(v, new ArrayList<>(20)));
+
+
+        for (String className : classMap.keySet()) {
+            List<BookOrderVo> classBookOrderVoList = classMap.get(className);
+//          [bookId，个人订单]
+            Map<Integer, List<BookOrderVo>> bookMap = classBookOrderVoList.stream().collect(Collectors.groupingBy(BookOrderVo::getBookId));
+//          一个班的信息
+            List<OutBoundDataVo> outBoundDataVoList = new ArrayList<>(bookMap.size());
+            bookMap.keySet().forEach(v -> {
+                List<BookOrderVo> item = bookMap.get(v);
+                if (!item.isEmpty()) {
+                    outBoundDataVoList.add(
+                            OutBoundDataVo.builder()
+                                    .bookName(item.get(0).getName())
+                                    .price(item.get(0).getPrice())
+                                    .className(className)
+                                    .number(item.size())
+                                    .build());
+                }
+            });
+            int specialityId = SpecialityUtil.getSpeciality(className).getId();
+            specialityOutBoundDataMap.get(specialityId).addAll(outBoundDataVoList);
+        }
+        return specialityOutBoundDataMap;
     }
 
     /**
      * 导出年级订书结算表
      *
-     * @param param 参数类
-     * @return 结算表
+     * @param grade  年级
+     * @param degree 0全部，1本科 2专科
      */
     @Override
-    public Workbook getGradeBookAccount(ExportGradeBookAccountParam param) {
-        String title = "软件学院" + TimeUtil.getGradeName(param.getGrade(), param.isRb()) + "学生书费单";
-        String[] head = new String[5];
+    public Workbook exportBookSettlement(int grade, int degree) {
+//      获取折扣信息
+        List<Semester> semesterList = TimeUtil.getGradeSemesterList(grade, degree);
+        Map<String, Double> semesterDiscountMap = bookOrderMapper.getDiscountList()
+                .stream()
+                .collect(Collectors.toMap(SemesterDiscountDo::getSemesterId, SemesterDiscountDo::getDiscount));
+        semesterList.forEach(v -> {
+            if (!semesterDiscountMap.containsKey(v.getId())) {
+                semesterDiscountMap.put(v.getId(), 0.0);
+            }
+        });
+
+        int colNum = 5 + semesterList.size() * 2;
+        String title = StrUtil.format("软件学院{}学生书费单", TimeUtil.getGradeName(grade, degree));
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("教材结算");
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, colNum - 1));
+//      设置列宽
+        sheet.setColumnWidth(0, 256 * 4 + 184);
+        for (int i = 1; i < colNum; i++) {
+            sheet.setColumnWidth(i, 256 * 12 + 184);
+        }
+
+        Cell cell00 = sheet.createRow(0).createCell(0);
+        cell00.setCellValue(title);
+        cell00.setCellStyle(getBaseCellStyle(workbook));
+
+        String[] head = new String[colNum];
         head[0] = "序号";
         head[1] = "班级";
         head[2] = "学号";
         head[3] = "姓名";
-        head[4] = "合计";
-        Semester nowSemester = TimeUtil.getNowSemester();
-        ArrayList<String> list = new ArrayList<>();
-        String semester = TimeUtil.getFirstSemester(param.getGrade());
-        while (!TimeUtil.getNextSemester(nowSemester.getId()).equals(semester)) {
-            list.add(semester + "学期");
-            list.add(getDiscountBySemester(semester) + "折后");
-            semester = TimeUtil.getNextSemester(semester);
+        int i = 3;
+        for (Semester semester : semesterList) {
+            String semesterId = semester.getId();
+            Double discount = semesterDiscountMap.get(semesterId);
+            head[i + 1] = StrUtil.builder(7).append(semesterId).append("学期").toString();
+            head[i + 2] = StrUtil.builder(6).append(discount == null ? StrUtil.EMPTY : discount).append("折后").toString();
+            i = i + 2;
+        }
+        head[head.length - 1] = "应交书费";
+
+        Row row1 = sheet.createRow(1);
+        row1.setHeight((short) 400);
+        for (int j = 0; j < head.length; j++) {
+            Cell cell = row1.createCell(j);
+            cell.setCellStyle(getBaseCellStyle(workbook));
+            cell.setCellValue(head[j]);
         }
 
-        String[][] data = renderData(param, list);
-        //构建数据
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        XSSFSheet sheet = workbook.createSheet();
-        XSSFRow row1 = sheet.createRow(0);
-        int col = 0;
-        for (int i = 0; i < 4; i++) {
-            XSSFCell cell = row1.createCell(col++);
-            cell.setCellStyle(getBaseCellStyle(workbook));
-            cell.setCellValue(head[i]);
-        }
-        for (int i = 0; i < list.size(); i++) {
-            XSSFCell cell = row1.createCell(col++);
-            cell.setCellStyle(getBaseCellStyle(workbook));
-            cell.setCellValue(list.get(i));
-        }
-        XSSFCell totalCell = row1.createCell(col++);
-        totalCell.setCellStyle(getBaseCellStyle(workbook));
-        totalCell.setCellValue("总计");
-        for (int i = 0; i < data.length; i++) {
-            XSSFRow row = sheet.createRow(i + 1);
-            for (int j = 0; j < data[i].length; j++) {
-                XSSFCell cell = row.createCell(j);
+        List<BookSettlementVo> bookSettlementVoList = renderData(grade, degree);
+        for (int j = 2; j < bookSettlementVoList.size() + 2; j++) {
+            BookSettlementVo bookSettlementVo = bookSettlementVoList.get(j - 2);
+            Row row = sheet.createRow(j);
+            row.setHeight((short) 400);
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(j - 1);
+            cell0.setCellStyle(getBaseCellStyle(workbook));
+
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(bookSettlementVo.getClassName());
+            cell1.setCellStyle(getBaseCellStyle(workbook));
+
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(bookSettlementVo.getUserId());
+            cell2.setCellStyle(getBaseCellStyle(workbook));
+
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(bookSettlementVo.getName());
+            cell3.setCellStyle(getBaseCellStyle(workbook));
+
+            Map<String, Double> semesterBill = bookSettlementVo.getSemesterBill();
+            Set<String> semesterSet = new TreeSet<>(semesterBill.keySet());
+            int k = 4;
+            for (String semesterId : semesterSet) {
+                Cell cell = row.createCell(k);
+                cell.setCellValue(semesterBill.get(semesterId));
                 cell.setCellStyle(getBaseCellStyle(workbook));
-                cell.setCellValue(data[i][j]);
+
+                Cell cellDiscount = row.createCell(k + 1);
+//              账单*折扣保留两位小数
+                cellDiscount.setCellValue(NumberUtil.round(semesterBill.get(semesterId) * semesterDiscountMap.get(semesterId), 2).doubleValue());
+                cellDiscount.setCellStyle(getBaseCellStyle(workbook));
+                k = k + 2;
             }
+            double sum = 0;
+            for (String semesterId : semesterSet) {
+                sum += semesterBill.get(semesterId) * semesterDiscountMap.get(semesterId);
+            }
+            Cell sumCell = row.createCell(k);
+            sumCell.setCellValue(NumberUtil.round(sum, 2).doubleValue());
+            sumCell.setCellStyle(getBaseCellStyle(workbook));
         }
+
 
         return workbook;
     }
 
     /**
-     * 构建年级订书结算表数据
+     * 计算每学期的教材计算费用
      *
-     * @param param
-     * @return
+     * @param grade  年级
+     * @param degree 0全部，1本科 2专科
      */
-    public String[][] renderData(ExportGradeBookAccountParam param, List<String> semesterList) {
-        Map<String, List<BookOrderVo>> studentMap = bookOrderMapper.selectByExportGradeBookAccountParam(param)
-                .stream()
-                .sorted((x, y) -> StrUtil.compare(x.getUserId(), y.getUserId(), false))
-                .collect(Collectors.groupingBy(BookOrderVo::getUserId));
-        String[][] data = new String[studentMap.size()][5 + semesterList.size()];
-        int row = 0, col = 0;
-        for (String studentId : studentMap.keySet()) {
-            double studentSum = 0;
-            col = 0;
-            BookOrderVo bookOrderVo = studentMap.get(studentId).get(0);
-            data[row][col++] = row + 1 + "";
-            data[row][col++] = bookOrderVo.getClassName();
-            data[row][col++] = bookOrderVo.getUserId();
-            data[row][col++] = bookOrderVo.getUserName();
-            Map<String, List<BookOrderVo>> semesterMap = studentMap.get(studentId).stream().collect(Collectors.groupingBy(BookOrderVo::getSemesterId));
-            for (String semeterId : semesterMap.keySet()) {
-                BookOrderVo disCount = semesterMap.get(semeterId).get(0);
-                Double oneSemesterSum = semesterMap.get(semeterId)
+    public List<BookSettlementVo> renderData(int grade, int degree) {
+        List<Semester> semesterList = TimeUtil.getGradeSemesterList(grade, degree);
+        StudentMapper studentMapper = SpringContextUtil.getBean(StudentMapper.class);
+        List<StudentVo> studentVoList = studentMapper.select(StudentSelectParam.builder().grade(grade).degree(degree).build());
+        List<BookSettlementVo> bookSettlementVoList = new ArrayList<>(studentVoList.size());
+//      初始化每个学生的账单数据
+        studentVoList.forEach(student -> {
+            BookSettlementVo bookSettlementVo = new BookSettlementVo();
+            bookSettlementVo.setName(student.getName());
+            bookSettlementVo.setClassName(student.getClassName());
+            bookSettlementVo.setUserId(student.getId());
+
+            Map<String, Double> bill = new HashMap<>(semesterList.size());
+            semesterList.forEach(semester -> bill.put(semester.getId(), 0.0));
+            bookSettlementVo.setSemesterBill(bill);
+            bookSettlementVoList.add(bookSettlementVo);
+        });
+//      [userId，[学期id，金额]]
+        Map<String, Map<String, DoubleSummaryStatistics>> collect =
+                bookOrderMapper.select(BookOrderSelectParam.builder().grade(grade).degree(degree).build())
                         .stream()
-                        .map((bov) -> bov.getPrice())
-                        .reduce(0.0, (price1, price2) -> price1 + price2);
-                String discountPrice = String.format("%.2f", disCount.getDiscount() * oneSemesterSum * 0.1);
-                data[row][col++] = String.format("%.2f", oneSemesterSum);
-                data[row][col++] = discountPrice + "";
-                studentSum += Double.parseDouble(discountPrice);
+                        .collect(Collectors.groupingBy(BookOrderVo::getUserId,
+                                Collectors.groupingBy(BookOrderVo::getSemesterId,
+                                        Collectors.summarizingDouble(BookOrderVo::getPrice))));
+
+        for (BookSettlementVo bookSettlementVo : bookSettlementVoList) {
+            String userId = bookSettlementVo.getUserId();
+            Map<String, Double> semesterBill = bookSettlementVo.getSemesterBill();
+            Map<String, DoubleSummaryStatistics> map = collect.get(userId);
+            if (map != null) {
+                map.forEach((k, v) -> semesterBill.put(k, v.getSum()));
             }
-            data[row++][col] = studentSum + "";
 
         }
+        bookSettlementVoList.sort(Comparator.comparing(BookSettlementVo::getUserId));
 
-        return data;
+
+        return bookSettlementVoList;
     }
+
 
     @Override
     public void setSemesterDiscount(String semester, Double discount) {
@@ -664,6 +770,26 @@ public class BookOrderServiceImpl implements BookOrderService {
     @Override
     public Double getDiscountBySemester(String semester) {
         return bookOrderMapper.selectDiscountBySemester(semester);
+    }
+
+    /**
+     * 获取每学期折扣列表
+     */
+    @Override
+    public List<SemesterDiscountVo> getDiscountBySemesterList() {
+        Map<String, Double> map = bookOrderMapper.getDiscountList()
+                .stream()
+                .collect(Collectors.toMap(SemesterDiscountDo::getSemesterId, SemesterDiscountDo::getDiscount));
+
+        List<Semester> semesterList = TimeUtil.getAllSemester();
+        List<SemesterDiscountVo> semesterDiscountVoList = new ArrayList<>(semesterList.size());
+        for (Semester semester : semesterList) {
+            String semesterId = semester.getId();
+            String semesterName = semester.getName();
+            SemesterDiscountVo semesterDiscountVo = new SemesterDiscountVo(semesterId, String.valueOf(map.get(semesterId)), semesterName);
+            semesterDiscountVoList.add(semesterDiscountVo);
+        }
+        return semesterDiscountVoList;
     }
 
 
@@ -722,7 +848,6 @@ public class BookOrderServiceImpl implements BookOrderService {
 
         Map<String, Long> map = bookOrderVoList.parallelStream().collect(Collectors.groupingBy(BookOrderVo::getName, Collectors.counting()));
         map.forEach((k, v) -> data[rowCount - 1][bookNameToIndex.get(k)] = v.toString());
-//        map.forEach((k, v) -> System.out.println(k + " " + v));
         return data;
     }
 }

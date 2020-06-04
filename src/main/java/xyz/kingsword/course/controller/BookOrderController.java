@@ -3,31 +3,28 @@ package xyz.kingsword.course.controller;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.lang.Dict;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-import xyz.kingsword.course.VO.BookOrderVo;
-import xyz.kingsword.course.VO.CourseGroupOrderVo;
-import xyz.kingsword.course.VO.StudentVo;
+import org.springframework.web.bind.annotation.*;
+import xyz.kingsword.course.vo.BookOrderVo;
+import xyz.kingsword.course.vo.CourseGroupOrderVo;
+import xyz.kingsword.course.vo.StudentVo;
 import xyz.kingsword.course.annocations.Role;
 import xyz.kingsword.course.enmu.ErrorEnum;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.exception.AuthException;
 import xyz.kingsword.course.exception.ParameterException;
 import xyz.kingsword.course.pojo.BookOrder;
-import xyz.kingsword.course.pojo.param.ExportGradeBookAccountParam;
 import xyz.kingsword.course.pojo.Result;
 import xyz.kingsword.course.pojo.User;
-import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
-import xyz.kingsword.course.pojo.param.DeclareBookExportParam;
-import xyz.kingsword.course.pojo.param.ExportGradeBookParam;
-import xyz.kingsword.course.pojo.param.ExportPluralClassBookParam;
+import xyz.kingsword.course.pojo.param.*;
 import xyz.kingsword.course.service.BookOrderService;
 import xyz.kingsword.course.util.ConditionUtil;
 import xyz.kingsword.course.util.TimeUtil;
@@ -114,7 +111,7 @@ public class BookOrderController {
     @RequestMapping(value = "/exportBookOrderStatistics", method = RequestMethod.GET)
     public void exportBookOrderStatistics(String semesterId, HttpServletResponse response) throws IOException {
         Workbook workbook = bookOrderService.exportBookOrderStatistics(semesterId);
-        String fileName = TimeUtil.getSemesterName(semesterId) + "教材征订统计表.xlsx";
+        String fileName = TimeUtil.getSemesterName(semesterId) + "教材征订统计表" + excelPostfix(workbook);
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
         response.setContentType(EXCEL_CONTENT_TYPE);
         response.setHeader(CONTENT_DISPOSITION, SET_FILENAME + fileName);
@@ -132,7 +129,7 @@ public class BookOrderController {
     @Role
     public void exportClassBookInfo(HttpServletResponse response, String className, String semesterId) throws IOException {
         Workbook workbook = bookOrderService.exportClassRecord(className, semesterId);
-        String fileName = className + "-" + TimeUtil.getSemesterName(semesterId) + "教材征订计划表.xlsx";
+        String fileName = className + "-" + TimeUtil.getSemesterName(semesterId) + "教材征订计划表" + excelPostfix(workbook);
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
         response.setContentType(EXCEL_CONTENT_TYPE);
         response.setHeader(CONTENT_DISPOSITION, SET_FILENAME + fileName);
@@ -171,7 +168,7 @@ public class BookOrderController {
     @Role
     public void exportBookInfo(HttpServletResponse response, DeclareBookExportParam param) throws IOException {
         Workbook workbook = bookOrderService.exportAllStudentRecord(param);
-        String fileName = TimeUtil.getSemesterName(param.getSemesterId()) + "教材征订计划表.xlsx";
+        String fileName = TimeUtil.getSemesterName(param.getSemesterId()) + "教材征订计划表" + excelPostfix(workbook);
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
         response.setContentType(EXCEL_CONTENT_TYPE);
         response.setHeader(CONTENT_DISPOSITION, SET_FILENAME + fileName);
@@ -179,35 +176,41 @@ public class BookOrderController {
         workbook.close();
     }
 
-    @RequestMapping(value = "/exportGradeBookInfo", method = RequestMethod.GET)
-    @ApiOperation("出库单导出")
-    public void exportGradeBookInfo(HttpServletResponse response, ExportGradeBookParam param) throws IOException {
-        Workbook workbook = bookOrderService.exportGradeOrder(param);
-        String fileName = TimeUtil.getGradeName(param.getGrade(), param.isRb()) + "出库单.xlsx";
-        fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
-        response.setContentType(EXCEL_CONTENT_TYPE);
-        response.setHeader(CONTENT_DISPOSITION, SET_FILENAME + fileName);
-        workbook.write(response.getOutputStream());
-        workbook.close();
-
-    }
-
-    @RequestMapping(value = "/exportGradeBookAccount", method = RequestMethod.GET)
+    @GetMapping(value = "/exportAllBookBill")
     @ApiOperation("导出教材结算表")
-    public void exportGradeBookAccount(HttpServletResponse response, ExportGradeBookAccountParam param) throws IOException {
-        Workbook workbook = bookOrderService.getGradeBookAccount(param);
-        String fileName = TimeUtil.getGradeName(param.getGrade(), param.isRb()) + "教材结算.xlsx";
+    public void exportGradeBookAccount(HttpServletResponse response, int grade, int degree) throws IOException {
+        Workbook workbook = bookOrderService.exportBookSettlement(grade, degree);
+        String fileName = TimeUtil.getGradeName(grade, degree) + "教材结算" + excelPostfix(workbook);
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
         response.setContentType(EXCEL_CONTENT_TYPE);
         response.setHeader(CONTENT_DISPOSITION, SET_FILENAME + fileName);
         workbook.write(response.getOutputStream());
         workbook.close();
     }
+
+    @GetMapping("/outBound")
+    @ApiOperation("出库单导出")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "grade", required = true, value = "年级", defaultValue = "2017"),
+            @ApiImplicitParam(name = "semesterId", required = true, value = "学期", defaultValue = "19202"),
+            @ApiImplicitParam(name = "degree", required = true, value = "学历筛选 0全部，1本科 2专科")
+    }
+    )
+    public void outBound(HttpServletResponse response, int grade, String semesterId, int degree) throws IOException {
+        Workbook workbook = bookOrderService.exportOutBoundData(grade, semesterId, degree);
+        String fileName = "教材结算" + excelPostfix(workbook);
+        fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+        response.setContentType(EXCEL_CONTENT_TYPE);
+        response.setHeader(CONTENT_DISPOSITION, SET_FILENAME + fileName);
+        workbook.write(response.getOutputStream());
+        workbook.close();
+    }
+
 
     @RequestMapping(value = "/setSemesterDiscount", method = RequestMethod.POST)
     @ApiOperation("设置学期书费折扣值")
     public Result<Object> setSemesterDiscount(String semester, double discount) {
-        bookOrderService.setSemesterDiscount(semester, discount);
+        bookOrderService.setSemesterDiscount(semester, NumberUtil.round(discount, 2).doubleValue());
         return new Result<>();
     }
 
@@ -216,5 +219,18 @@ public class BookOrderController {
     public Result<Double> getSemesterDiscount(String semester) {
         Double discount = bookOrderService.getDiscountBySemester(semester);
         return new Result<>(discount);
+    }
+
+    @RequestMapping(value = "/getSemesterDiscountList", method = RequestMethod.GET)
+    @ApiOperation("获取所有学期与折扣")
+    public Result<Object> getSemesterDiscountList() {
+        return new Result<>(bookOrderService.getDiscountBySemesterList());
+    }
+
+    private String excelPostfix(Workbook workbook) {
+        if (workbook instanceof HSSFWorkbook) {
+            return ".xls";
+        }
+        return ".xlsx";
     }
 }

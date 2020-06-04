@@ -1,19 +1,20 @@
 package xyz.kingsword.course.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.github.pagehelper.page.PageMethod;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import xyz.kingsword.course.VO.SortCourseVo;
+import xyz.kingsword.course.vo.SortCourseVo;
 import xyz.kingsword.course.dao.CourseGroupMapper;
 import xyz.kingsword.course.dao.CourseMapper;
 import xyz.kingsword.course.dao.SortCourseMapper;
@@ -40,7 +41,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service("SortServiceImpl")
+@Service
 public class SortServiceImpl implements SortCourseService {
 
     @Resource
@@ -78,8 +79,7 @@ public class SortServiceImpl implements SortCourseService {
 
     @Override
     public List<SortCourseVo> getCourseHistory(String courseId) {
-        String nowSemesterId = TimeUtil.getNowSemester().getId();
-        List<SortCourseVo> sortCourseVoList = sortcourseMapper.getCourseHistory(courseId, nowSemesterId);
+        List<SortCourseVo> sortCourseVoList = sortcourseMapper.getCourseHistory(courseId);
         renderSortCourseVo(sortCourseVoList);
         return sortCourseVoList;
     }
@@ -94,7 +94,7 @@ public class SortServiceImpl implements SortCourseService {
 
     @Override
     public PageInfo<SortCourseVo> search(SortCourseSearchParam param) {
-        PageInfo<SortCourseVo> pageInfo = PageHelper.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> sortcourseMapper.search(param));
+        PageInfo<SortCourseVo> pageInfo = PageMethod.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> sortcourseMapper.search(param));
         List<SortCourseVo> sortCourseVoList = pageInfo.getList();
         renderSortCourseVo(sortCourseVoList);
         return PageInfo.of(sortCourseVoList, pageInfo.getNavigatePages());
@@ -165,6 +165,7 @@ public class SortServiceImpl implements SortCourseService {
                 sortCourseVo.setBookManager(bookManager.getName());
             }
         }
+        CollUtil.sort(sortCourseVoList, (a, b) -> StrUtil.compare(a.getCourseId(), b.getCourseId(), false));
     }
 
 
@@ -181,7 +182,7 @@ public class SortServiceImpl implements SortCourseService {
             workbook = new HSSFWorkbook(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
+            return Collections.emptyList();
         }
 
         Sheet sheet = workbook.getSheetAt(0);

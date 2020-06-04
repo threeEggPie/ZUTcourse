@@ -1,7 +1,7 @@
 package xyz.kingsword.course.service;
 
 import com.github.pagehelper.PageInfo;
-import xyz.kingsword.course.VO.CourseVo;
+import xyz.kingsword.course.vo.CourseVo;
 import xyz.kingsword.course.pojo.Course;
 import xyz.kingsword.course.pojo.param.CourseSelectParam;
 

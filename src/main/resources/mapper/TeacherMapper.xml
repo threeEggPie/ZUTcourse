@@ -18,7 +18,7 @@
     <result column="status" jdbcType="INTEGER" property="status"/>
   </resultMap>
 
-  <resultMap id="TeacherVoMap" type="xyz.kingsword.course.VO.TeacherVo">
+  <resultMap id="TeacherVoMap" type="xyz.kingsword.course.vo.TeacherVo">
     <id column="id" jdbcType="CHAR" property="id"/>
     <result column="name" jdbcType="CHAR" property="name"/>
     <result column="research_room" jdbcType="INTEGER" property="researchRoom"/>

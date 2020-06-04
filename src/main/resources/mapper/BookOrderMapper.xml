@@ -10,7 +10,7 @@
     <result column="status" jdbcType="INTEGER" property="status"/>
   </resultMap>
 
-  <resultMap id="BookOrderVoMap" type="xyz.kingsword.course.VO.BookOrderVo">
+  <resultMap id="BookOrderVoMap" type="xyz.kingsword.course.vo.BookOrderVo">
     <id column="order_id" jdbcType="INTEGER" property="orderId"/>
     <result column="user_id" jdbcType="CHAR" property="userId"/>
     <result column="user_name" jdbcType="CHAR" property="userName"/>
@@ -20,7 +20,7 @@
     <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
     <result column="price" jdbcType="FLOAT" property="price"/>
     <result column="course_id" jdbcType="CHAR" property="courseId"/>
-    <result column="discount" jdbcType="FLOAT" property="discount" />
+    <result column="discount" jdbcType="FLOAT" property="discount"/>
   </resultMap>
 
   <resultMap id="BookExportViewMap" type="xyz.kingsword.course.pojo.DO.BookExportCourseDo">
@@ -34,7 +34,7 @@
     <result column="text_book" jdbcType="CHAR" property="textBook"/>
   </resultMap>
 
-<!--  <resultMap id="BookOrderStatisticsMap" type="xyz.kingsword.course.VO.BookOrderStatistics">-->
+  <!--  <resultMap id="BookOrderStatisticsMap" type="xyz.kingsword.course.vo.BookOrderStatistics">-->
   <!--    <result column="book_id" property="bookId"/>-->
   <!--    <result column=""-->
   <!--  </resultMap>-->
@@ -61,8 +61,8 @@
       and class != '教师组'
   </select>
   <select id="select" resultMap="BookOrderVoMap">
-    select user_id,`name` as user_name, course_id,order_id, book_id,book_name,semester_id,price,class
-    from book_order_view
+    select user_id,book_order_view.`name` as user_name, course_id,order_id, book_id,book_name,semester_id,price,class
+    from book_order_view,classes,speciality
     <where>
       <if test="userId !=null and userId !=''">
         user_id=#{userId}
@@ -76,6 +76,23 @@
       <if test="bookId >0">
         and book_id=#{bookId}
       </if>
+      <if test="bookId >0">
+        and book_id=#{bookId}
+      </if>
+      <if test="grade >0">
+        and grade=#{grade}
+      </if>
+      <if test="grade >0">
+        and grade=#{grade}
+      </if>
+      <if test="degree == 1">
+        and speciality.parent_id &lt; 11
+      </if>
+      <if test="degree == 2">
+        and speciality.parent_id = 11
+      </if>
+      and classes.classname=book_order_view.class
+      and speciality.id=classes.speciality
     </where>
   </select>
 
@@ -101,24 +118,29 @@
   </select>
 
   <select id="getClassBookCount" resultType="int">
-    select count(book_id) from book_order_view where book_id=#{bookId} and class= #{className}
+    select count(book_id)
+    from book_order_view
+    where book_id = #{bookId}
+      and class = #{className}
   </select>
 
-  <update id="setSemesterDiscount" >
-    update book_order set discount =#{discount} where semester_id = #{semester}
+  <update id="setSemesterDiscount">
+    update book_order
+    set discount =#{discount}
+    where semester_id = #{semester}
   </update>
   <select id="selectDiscountBySemester" parameterType="String" resultType="Double">
-    select  discount  from book_order where semester_id = #{semester} limit 1
+    select discount
+    from book_order
+    where semester_id = #{semester}
+    limit 1
   </select>
 
-  <select id="selectByExportGradeBookAccountParam" parameterType="ExportGradeBookAccountParam" resultMap="BookOrderVoMap">
-    select  user_id, `name` as user_name,class, book_id,semester_id, book_name,price,discount
-    from book_order_view where user_id like concat(#{grade},'%')
-    <if test="rb==1">
-      and class like 'RB%'
-    </if>
-    <if test="rb==0">
-      and class like 'RZ%'
-    </if>
+  <select id="getDiscountList" resultType="xyz.kingsword.course.pojo.DO.SemesterDiscountDo">
+    SELECT semester_id As semesterId,
+           discount
+    FROM book_order
+    GROUP BY semester_id, discount
+    ORDER BY semester_id DESC
   </select>
 </mapper>

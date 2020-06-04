@@ -47,6 +47,10 @@ public enum ErrorEnum {
     ORDER_REPLICATION(440, "重复订书"),
     ORDERED(441, "已被订购"),
 
+    /**
+     * 课程管理
+     */
+    REPEATED_ID(450, "课程id重复"),
 
     /**
      * 编码可能导致的问题

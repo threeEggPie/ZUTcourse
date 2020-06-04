@@ -2,7 +2,7 @@ package xyz.kingsword.course.service;
 
 import com.github.pagehelper.PageInfo;
 import org.apache.poi.ss.usermodel.Workbook;
-import xyz.kingsword.course.VO.TeacherVo;
+import xyz.kingsword.course.vo.TeacherVo;
 import xyz.kingsword.course.pojo.Teacher;
 import xyz.kingsword.course.pojo.param.TeacherSelectParam;
 

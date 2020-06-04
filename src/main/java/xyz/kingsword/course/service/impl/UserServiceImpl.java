@@ -3,7 +3,7 @@ package xyz.kingsword.course.service.impl;
 
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
-import xyz.kingsword.course.VO.*;
+import xyz.kingsword.course.vo.*;
 import xyz.kingsword.course.dao.CourseGroupMapper;
 import xyz.kingsword.course.dao.UserMapper;
 import xyz.kingsword.course.enmu.ErrorEnum;

@@ -5,7 +5,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import xyz.kingsword.course.VO.VerifyResult;
+import xyz.kingsword.course.vo.VerifyResult;
 import xyz.kingsword.course.pojo.ExecutionPlan;
 import xyz.kingsword.course.pojo.Result;
 import xyz.kingsword.course.pojo.TrainingProgram;

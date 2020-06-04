@@ -1,4 +1,4 @@
-package xyz.kingsword.course.VO;
+package xyz.kingsword.course.vo;
 
 import lombok.Data;
 import xyz.kingsword.course.pojo.Book;

@@ -1,4 +1,4 @@
-package xyz.kingsword.course.VO;
+package xyz.kingsword.course.vo;
 
 import lombok.Data;
 import xyz.kingsword.course.pojo.Book;
@@ -29,7 +29,7 @@ public class CourseVo {
      */
     private int nature;
 
-    private int credit;
+    private double credit;
 
     /**
      * 院考系考

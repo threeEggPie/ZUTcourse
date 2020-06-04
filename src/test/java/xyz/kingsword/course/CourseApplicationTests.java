@@ -44,15 +44,13 @@ public class CourseApplicationTests {
     @Autowired
     private TeacherMapper teacherMapper;
     @Autowired
-    private ConfigMapper configMapper;
-    @Autowired
     private SortCourseMapper sortCourseMapper;
     @Autowired
     private CourseMapper courseMapper;
 
 
     @Test
-    public void contextLoads() throws Exception {
+    public void contextLoads() {
     }
 
     private void importStudent() throws IOException {

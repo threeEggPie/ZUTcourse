@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import xyz.kingsword.course.VO.SortCourseVo;
+import xyz.kingsword.course.vo.SortCourseVo;
 import xyz.kingsword.course.annocations.Role;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.exception.BaseException;
@@ -116,11 +116,9 @@ public class SortCourseController {
     public void export(HttpServletResponse response, String semesterId) throws IOException {
         Workbook workbook = sortCourseService.excelExport(semesterId);
         String fileName = TimeUtil.getSemesterName(semesterId) + "教学任务.xls";
-        fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), "ISO8859-1");
+        fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
         response.setContentType("application/msexcel;charset=UTF-8");
         response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
-        response.addHeader("Param", "no-cache");
-        response.addHeader("Cache-Control", "no-cache");
         workbook.write(response.getOutputStream());
 
         OutputStream outputStream = response.getOutputStream();

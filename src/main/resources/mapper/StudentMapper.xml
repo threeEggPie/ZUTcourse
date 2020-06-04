@@ -9,7 +9,7 @@
     <result column="gender" jdbcType="VARCHAR" property="gender"/>
   </resultMap>
 
-  <resultMap id="StudentVoMap" type="xyz.kingsword.course.VO.StudentVo">
+  <resultMap id="StudentVoMap" type="xyz.kingsword.course.vo.StudentVo">
     <result column="id" jdbcType="CHAR" property="id"/>
     <result column="name" jdbcType="CHAR" property="name"/>
     <result column="class_name" jdbcType="CHAR" property="className"/>
@@ -37,7 +37,7 @@
   </update>
 
   <select id="select" resultMap="StudentVoMap">
-    select id,`name`,class_name from student
+    select student.id,student.`name`,student.class_name from student,classes,speciality
     <where>
       <if test="id !=null and id !=''">
         id=#{id}
@@ -48,6 +48,26 @@
       <if test="className !=null and className !=''">
         and class_name =#{className}
       </if>
+      <if test="className !=null and className !=''">
+        and class_name =#{className}
+      </if>
+      <if test="className !=null and className !=''">
+        and class_name =#{className}
+      </if>
+      <if test="className !=null and className !=''">
+        and class_name =#{className}
+      </if>
+      <if test="grade >0">
+        and grade=#{grade}
+      </if>
+      <if test="degree == 1">
+        and speciality.parent_id &lt; 11
+      </if>
+      <if test="degree == 2">
+        and speciality.parent_id = 11
+      </if>
+      and classes.speciality=speciality.id
+      and student.class_name=classes.classname
     </where>
     order by id
   </select>

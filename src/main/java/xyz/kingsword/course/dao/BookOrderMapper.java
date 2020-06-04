@@ -1,11 +1,11 @@
 package xyz.kingsword.course.dao;
 
 import org.apache.ibatis.annotations.Param;
-import xyz.kingsword.course.VO.BookOrderVo;
 import xyz.kingsword.course.pojo.BookOrder;
 import xyz.kingsword.course.pojo.DO.BookExportCourseDo;
+import xyz.kingsword.course.pojo.DO.SemesterDiscountDo;
 import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
-import xyz.kingsword.course.pojo.param.ExportGradeBookAccountParam;
+import xyz.kingsword.course.vo.BookOrderVo;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public interface BookOrderMapper {
 
     Double selectDiscountBySemester(String semester);
 
-    void setSemesterDiscount(@Param("semester") String semester, @Param("discount") Double discount);
+    List<SemesterDiscountDo> getDiscountList();
 
-    List<BookOrderVo> selectByExportGradeBookAccountParam(ExportGradeBookAccountParam param);
+    void setSemesterDiscount(@Param("semester") String semester, @Param("discount") Double discount);
 }

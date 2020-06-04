@@ -1,13 +1,9 @@
 package xyz.kingsword.course.controller;
 
 import cn.hutool.core.convert.Convert;
-import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import xyz.kingsword.course.annocations.Role;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.pojo.Book;
@@ -95,25 +91,9 @@ public class BookController {
 
     @RequestMapping(value = "/isbn", method = RequestMethod.GET)
     @ApiOperation("教材查询接口，同步远程接口信息")
-    public Result<Object> queryBook(String ISBN) {
-        Book book = BookUtil.getBook(ISBN);
+    public Result<Object> queryBook(@RequestParam("ISBN") String isbn) {
+        Book book = BookUtil.getBook(isbn);
         return new Result<>(book);
-    }
-
-
-    @RequestMapping(value = "/setDeclareStatus", method = RequestMethod.GET)
-    @ApiOperation("教师申报教材开关")
-    @Role(RoleEnum.ACADEMIC_MANAGER)
-    public Result<Object> setDeclareStatus(boolean flag) {
-        return new Result<>();
-    }
-
-    @RequestMapping(value = "/setPurchaseStatus", method = RequestMethod.GET)
-    @ApiOperation("设置学生订书操作开关")
-    @Role(RoleEnum.ACADEMIC_MANAGER)
-    public Result<Object> setPurchaseStatus(boolean flag) {
-        constant.setPurchaseStatus(Boolean.toString(flag));
-        return new Result<>();
     }
 
     @RequestMapping(value = "/getPurchaseStatus", method = RequestMethod.GET)
@@ -121,12 +101,5 @@ public class BookController {
     @Role(RoleEnum.ACADEMIC_MANAGER)
     public Result<Object> getPurchaseStatus() {
         return new Result<>(Convert.toBool(constant.getPurchaseStatus()));
-    }
-
-    @RequestMapping(value = "/getDeclareStatus", method = RequestMethod.GET)
-    @ApiOperation("查看老师报教材操作开关")
-    @Role(RoleEnum.ACADEMIC_MANAGER)
-    public Result<Object> getDeclareStatus() {
-        return new Result<>();
     }
 }

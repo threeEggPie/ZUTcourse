@@ -5,11 +5,12 @@ import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import xyz.kingsword.course.VO.CourseVo;
+import xyz.kingsword.course.vo.CourseVo;
 import xyz.kingsword.course.dao.CourseGroupMapper;
 import xyz.kingsword.course.dao.CourseMapper;
 import xyz.kingsword.course.enmu.AssessmentEnum;
 import xyz.kingsword.course.exception.DataException;
+import xyz.kingsword.course.exception.OperationException;
 import xyz.kingsword.course.pojo.Course;
 import xyz.kingsword.course.pojo.CourseGroup;
 import xyz.kingsword.course.pojo.Teacher;
@@ -17,6 +18,7 @@ import xyz.kingsword.course.pojo.param.CourseSelectParam;
 import xyz.kingsword.course.service.BookService;
 import xyz.kingsword.course.service.CourseService;
 import xyz.kingsword.course.service.TeacherService;
+import xyz.kingsword.course.util.ConditionUtil;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -24,6 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static xyz.kingsword.course.enmu.ErrorEnum.REPEATED_ID;
 
 @Slf4j
 @Service
@@ -41,6 +45,8 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public void insert(Course course) {
+        int count = courseMapper.courseRepeated(course.getId());
+        ConditionUtil.validateTrue(count == 0).orElseThrow(() -> new OperationException(REPEATED_ID));
         courseMapper.insert(course);
     }
 
