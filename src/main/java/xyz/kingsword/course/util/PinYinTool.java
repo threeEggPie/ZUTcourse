@@ -1,5 +1,6 @@
 package xyz.kingsword.course.util;
 
+import cn.hutool.core.util.StrUtil;
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
 import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
@@ -7,22 +8,30 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 public class PinYinTool {
-    HanyuPinyinOutputFormat format = null;
+    private static PinYinTool instance = new PinYinTool();
 
-    public static enum Type {
+    public static PinYinTool getInstance() {
+        return instance;
+    }
+
+    private HanyuPinyinOutputFormat format;
+
+    public enum Type {
         UPPERCASE,              //全部大写
         LOWERCASE,              //全部小写
         FIRSTUPPER              //首字母大写
     }
 
-    public PinYinTool() {
+
+    private PinYinTool() {
         format = new HanyuPinyinOutputFormat();
         format.setCaseType(HanyuPinyinCaseType.UPPERCASE);
         format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
     }
 
+
     public String toPinYin(String str) {
-        return toPinYin(str, "", Type.LOWERCASE);
+        return toPinYin(str, StrUtil.EMPTY, Type.LOWERCASE);
     }
 
     public String toPinYin(String str, String spera) {

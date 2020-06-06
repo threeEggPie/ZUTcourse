@@ -7,6 +7,7 @@
     <result column="course_id" jdbcType="CHAR" property="courseId"/>
     <result column="book_id" jdbcType="INTEGER" property="bookId"/>
     <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="discount" jdbcType="FLOAT" property="discount"/>
     <result column="status" jdbcType="INTEGER" property="status"/>
   </resultMap>
 
@@ -143,4 +144,19 @@
     GROUP BY semester_id, discount
     ORDER BY semester_id DESC
   </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, discount
+    from book_order
+    limit 700;
+  </select>
+
+  <update id="test">
+    <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+      update book_order
+      <set>
+        discount=${item.discount}
+      </set>
+      where id = ${item.id}
+    </foreach>
+  </update>
 </mapper>

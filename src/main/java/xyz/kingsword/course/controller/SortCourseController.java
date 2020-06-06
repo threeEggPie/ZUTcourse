@@ -8,16 +8,12 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.kingsword.course.annocations.Role;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.exception.BaseException;
 import xyz.kingsword.course.pojo.Result;
-import xyz.kingsword.course.pojo.SortCourse;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
 import xyz.kingsword.course.service.SortCourseService;
@@ -81,6 +77,13 @@ public class SortCourseController {
         return Result.emptyResult();
     }
 
+    @PostMapping(value = "/setClasses")
+    @ApiOperation(value = "排课安排班级")
+    public Result<Object> setClasses(@RequestBody List<String> classNameList, int sortId) {
+        sortCourseService.setClasses(classNameList, sortId);
+        return Result.emptyResult();
+    }
+
 
     @RequestMapping(value = "/mergeCourseHead", method = RequestMethod.PUT)
     @ApiOperation(value = "课头合并")
@@ -101,7 +104,6 @@ public class SortCourseController {
      */
     @RequestMapping(value = "/sortCourseExport", method = RequestMethod.GET)
     @ApiOperation(value = "教学任务导出")
-    @ApiImplicitParam(name = "semesterId", required = true, dataType = "String", paramType = "query")
     public void export(HttpServletResponse response, String semesterId) throws IOException {
         Workbook workbook = sortCourseService.excelExport(semesterId);
         String fileName = TimeUtil.getSemesterName(semesterId) + "教学任务.xls";
@@ -121,10 +123,7 @@ public class SortCourseController {
     public Result<Object> sortCourseImport(MultipartFile file) throws IOException {
         file = Optional.ofNullable(file).orElseThrow(() -> new BaseException("文件上传错误"));
         ConditionUtil.validateTrue(!file.isEmpty()).orElseThrow(() -> new ValidateException("文件上传错误"));
-        String semesterId = file.getOriginalFilename().substring(0, 5);
-        List<SortCourse> sortCourseList = sortCourseService.excelImport(file.getInputStream());
-        sortCourseList.forEach(v -> v.setSemesterId(semesterId));
-        sortCourseService.insertSortCourseList(sortCourseList);
+        sortCourseService.excelImport(file.getInputStream());
         return Result.emptyResult();
     }
 }

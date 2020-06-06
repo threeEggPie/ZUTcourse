@@ -1,7 +1,6 @@
 package xyz.kingsword.course.service.impl;
 
 import cn.hutool.cache.Cache;
-import cn.hutool.crypto.SecureUtil;
 import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.page.PageMethod;
 import lombok.extern.slf4j.Slf4j;
@@ -9,12 +8,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Service;
-import xyz.kingsword.course.vo.TeacherVo;
 import xyz.kingsword.course.dao.TeacherMapper;
 import xyz.kingsword.course.pojo.Teacher;
 import xyz.kingsword.course.pojo.param.TeacherSelectParam;
 import xyz.kingsword.course.service.TeacherService;
 import xyz.kingsword.course.util.UserUtil;
+import xyz.kingsword.course.vo.TeacherVo;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -34,10 +33,10 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public void insert(List<Teacher> teacherList) {
-        teacherList.forEach(v -> v.setPassword(UserUtil.encrypt(SecureUtil.md5("123456"))));
-        int flag = teacherMapper.insert(teacherList);
-        if (flag != teacherList.size())
-            log.error("数据库插入数据异常");
+        if (!teacherList.isEmpty()) {
+            teacherList.forEach(v -> v.setPassword(UserUtil.getDEFAULT_PASSWORD()));
+            teacherMapper.insert(teacherList);
+        }
     }
 
     @Override

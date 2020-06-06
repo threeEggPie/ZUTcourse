@@ -29,6 +29,8 @@ public class BookOrder implements Serializable {
     @ApiModelProperty(required = true)
     private String semesterId;
 
+    private double discount;
+
     /**
      * -1删除0正常
      */

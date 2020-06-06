@@ -86,10 +86,25 @@
   </select>
 
   <select id="getCourseHistory" resultMap="SortCourseViewMap">
-    SELECT sortcourse_id, tea_id, teacher_name, cou_id, course_name, nature, text_book, reference_book, student_num, semester_id, class
-    FROM sortcourse_view, semester
+    SELECT sortcourse_id,
+           tea_id,
+           teacher_name,
+           cou_id,
+           course_name,
+           nature,
+           text_book,
+           reference_book,
+           student_num,
+           semester_id,
+           class
+    FROM sortcourse_view,
+         semester
     WHERE cou_id = #{courseId}
       AND semester.id = semester_id
+  </select>
+  <select id="selectMaxId" resultType="java.lang.Integer">
+    select max(id)
+    from sortcourse
   </select>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="xyz.kingsword.course.pojo.SortCourse"
           useGeneratedKeys="true">
@@ -146,6 +161,11 @@
   <update id="updateChainses">
     update sortcourse
     set tea_id=#{teaId}
+    where id = #{id}
+  </update>
+  <update id="setClasses">
+    update sortcourse
+    set class=#{className}
     where id = #{id}
   </update>
 </mapper>

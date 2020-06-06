@@ -16,6 +16,9 @@ public interface SortCourseService {
 
     void setSortCourse(SortCourseUpdateParam sortCourseUpdateParam);
 
+    void setClasses(List<String> classNameList, int sortId);
+
+
     void deleteSortCourseRecord(List<Integer> id);
 
     List<SortCourseVo> getCourseHistory(String courseId);

@@ -21,6 +21,8 @@ public interface SortCourseMapper {
 
     int setTeacher(@Param("id") Integer id, @Param("teaId") String teaId);
 
+    int setClasses(@Param("className") String className, @Param("id") int id);
+
 
     /**
      * 多条件查询
@@ -42,6 +44,8 @@ public interface SortCourseMapper {
     List<SortCourseVo> getCourseHistory(@Param("courseId") String courseId);
 
     int setSortCourse(SortCourseUpdateParam param);
+
+    int selectMaxId();
 
 
 }

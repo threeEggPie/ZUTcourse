@@ -42,6 +42,7 @@ public class SortCourse implements Serializable {
      */
     private String mergedId;
 
+    @Deprecated
     private int flag;
 
     private static final long serialVersionUID = 1L;

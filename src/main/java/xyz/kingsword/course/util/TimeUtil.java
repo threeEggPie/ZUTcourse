@@ -2,10 +2,12 @@ package xyz.kingsword.course.util;
 
 import cn.hutool.core.lang.Validator;
 import cn.hutool.core.util.StrUtil;
+import lombok.NonNull;
 import org.springframework.stereotype.Component;
 import xyz.kingsword.course.enmu.ErrorEnum;
 import xyz.kingsword.course.exception.BaseException;
 import xyz.kingsword.course.exception.DataException;
+import xyz.kingsword.course.exception.OperationException;
 import xyz.kingsword.course.pojo.Semester;
 import xyz.kingsword.course.service.SemesterService;
 import xyz.kingsword.course.service.impl.SemesterServiceImpl;
@@ -115,6 +117,23 @@ public class TimeUtil {
         }
 
         return semesterName;
+    }
+
+    /**
+     * 根据学期名获取学期id
+     *
+     * @param semesterName eg:2019-2020学年第一学期
+     * @return 19201
+     */
+    public static String getSemesterId(@NonNull String semesterName) {
+        char[] chars = semesterName.toCharArray();
+        String semesterId;
+        try {
+            semesterId = StrUtil.builder(5).append(chars[2]).append(chars[3]).append(chars[7]).append(chars[8]).append(chars[12] == '一' ? '1' : '2').toString();
+        } catch (Exception e) {
+            throw new OperationException("学期名称错误,示例:2019-2020学年第一学期");
+        }
+        return semesterId;
     }
 
     /**
