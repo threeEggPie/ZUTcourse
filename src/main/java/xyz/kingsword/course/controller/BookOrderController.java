@@ -71,7 +71,7 @@ public class BookOrderController {
     public Result<Object> insertByGrade(@RequestBody List<Integer> gradeList) {
         String nextSemesterId = TimeUtil.getNextSemester().getId();
         bookOrderService.insertByGrade(gradeList, nextSemesterId);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/cancelPurchase", method = RequestMethod.GET)
@@ -79,7 +79,7 @@ public class BookOrderController {
     @Role
     public Result<Object> cancelPurchase(int id) {
         bookOrderService.cancelPurchase(id);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/courseGroupOrder", method = RequestMethod.GET)
@@ -198,7 +198,7 @@ public class BookOrderController {
     )
     public void outBound(HttpServletResponse response, int grade, String semesterId, int degree) throws IOException {
         Workbook workbook = bookOrderService.exportOutBoundData(grade, semesterId, degree);
-        String fileName = "教材结算" + excelPostfix(workbook);
+        String fileName = semesterId + TimeUtil.getGradeName(grade, degree) + "出库单" + excelPostfix(workbook);
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
         response.setContentType(EXCEL_CONTENT_TYPE);
         response.setHeader(CONTENT_DISPOSITION, SET_FILENAME + fileName);
@@ -211,7 +211,7 @@ public class BookOrderController {
     @ApiOperation("设置学期书费折扣值")
     public Result<Object> setSemesterDiscount(String semester, double discount) {
         bookOrderService.setSemesterDiscount(semester, NumberUtil.round(discount, 2).doubleValue());
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/getSemesterDiscount", method = RequestMethod.GET)

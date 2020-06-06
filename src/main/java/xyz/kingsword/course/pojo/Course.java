@@ -186,10 +186,6 @@ public class Course {
     @ApiModelProperty(required = true, value = "期末考试占比")
     private double examProportion = 0;
 
-    public void setTimeAll(int timeAll) {
-        this.timeAll = timeTheory + timePractical + timeComputer + timeLab + timeHomework;
-    }
-
     public void setTextBook(String textBook) {
         this.textBook = textBook;
     }

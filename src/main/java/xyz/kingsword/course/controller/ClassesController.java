@@ -35,7 +35,7 @@ public class ClassesController {
     @ApiOperation("修改")
     public Result update(Classes Classes) {
         classesService.update(Classes);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @PostMapping("/select")

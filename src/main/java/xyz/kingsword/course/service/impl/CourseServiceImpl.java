@@ -1,14 +1,21 @@
 package xyz.kingsword.course.service.impl;
 
+import cn.hutool.core.exceptions.ExceptionUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import xyz.kingsword.course.vo.CourseVo;
 import xyz.kingsword.course.dao.CourseGroupMapper;
 import xyz.kingsword.course.dao.CourseMapper;
 import xyz.kingsword.course.enmu.AssessmentEnum;
+import xyz.kingsword.course.enmu.CourseNature;
+import xyz.kingsword.course.enmu.CourseTypeEnum;
 import xyz.kingsword.course.exception.DataException;
 import xyz.kingsword.course.exception.OperationException;
 import xyz.kingsword.course.pojo.Course;
@@ -19,8 +26,11 @@ import xyz.kingsword.course.service.BookService;
 import xyz.kingsword.course.service.CourseService;
 import xyz.kingsword.course.service.TeacherService;
 import xyz.kingsword.course.util.ConditionUtil;
+import xyz.kingsword.course.vo.CourseVo;
 
 import javax.annotation.Resource;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,6 +74,48 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void resetBookManager(String courseId) {
         courseMapper.resetBookManager(courseId);
+    }
+
+    @Override
+    @SneakyThrows(IOException.class)
+    public void importData(InputStream inputStream) {
+        Workbook workbook;
+        try {
+            workbook = new XSSFWorkbook(inputStream);
+        } catch (IOException e) {
+            log.error("课程信息导入失败，excel无法打开");
+            throw new OperationException("课程信息导入失败，excel无法打开");
+        }
+        Sheet sheet = workbook.getSheetAt(0);
+        int rowRum = sheet.getLastRowNum();
+        List<Course> courseList = new ArrayList<>(rowRum);
+        int i = 0;
+        try {
+            for (i = 1; i < rowRum; i++) {
+                Row row = sheet.getRow(i);
+                Course course = new Course();
+                course.setId(row.getCell(1).getStringCellValue());
+                course.setName(row.getCell(2).getStringCellValue());
+                String[] elements = (row.getCell(3).getStringCellValue()).split("/");
+                course.setTimeWeek(Integer.parseInt(elements[0]));
+                course.setWeekNum(Integer.parseInt(elements[1]));
+                course.setTimeAll((int) row.getCell(4).getNumericCellValue());
+                course.setCredit((int) row.getCell(5).getNumericCellValue());
+                course.setType(CourseTypeEnum.get(row.getCell(6).getStringCellValue()).getCode());
+                course.setNature(CourseNature.getContent(row.getCell(7).getStringCellValue()).getCode());
+                course.setExaminationWay(row.getCell(8).getStringCellValue());
+                course.setTimeTheory((int) row.getCell(9).getNumericCellValue());
+                course.setTimeLab((int) row.getCell(10).getNumericCellValue());
+                courseList.add(course);
+            }
+            courseMapper.importData(courseList);
+        } catch (Exception e) {
+            log.error("课程信息导入错误,错误下标{}", i);
+            log.error(ExceptionUtil.stacktraceToString(e));
+            throw new OperationException("课程信息导入错误,错误下标" + i);
+        } finally {
+            inputStream.close();
+        }
     }
 
     @Override

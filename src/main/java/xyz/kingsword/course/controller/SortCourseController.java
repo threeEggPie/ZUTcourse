@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import xyz.kingsword.course.vo.SortCourseVo;
 import xyz.kingsword.course.annocations.Role;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.exception.BaseException;
@@ -24,6 +23,7 @@ import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
 import xyz.kingsword.course.service.SortCourseService;
 import xyz.kingsword.course.util.ConditionUtil;
 import xyz.kingsword.course.util.TimeUtil;
+import xyz.kingsword.course.vo.SortCourseVo;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -69,7 +69,7 @@ public class SortCourseController {
     @RequestMapping(value = "/deleteSortCourseById", method = RequestMethod.PUT)
     public Result<Object> deleteCourseInfo(@RequestBody List<Integer> id) {
         sortCourseService.deleteSortCourseRecord(id);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
 
@@ -78,33 +78,22 @@ public class SortCourseController {
     @ApiImplicitParam(value = "id为排课数据id必传，其他任给一个", required = true)
     public Result<Object> setSortCourse(@RequestBody SortCourseUpdateParam param) {
         sortCourseService.setSortCourse(param);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
-    @RequestMapping(value = "/sortCourseImport", method = RequestMethod.POST)
-    @ApiOperation(value = "排课数据导入")
-    public Result<Object> sortCourseImport(MultipartFile file) throws IOException {
-        Optional.ofNullable(file).orElseThrow(() -> new BaseException("文件上传错误"));
-        ConditionUtil.validateTrue(!file.isEmpty()).orElseThrow(() -> new ValidateException("文件上传错误"));
-        String semesterId = file.getOriginalFilename().substring(0, 5);
-        List<SortCourse> sortCourseList = sortCourseService.excelImport(file.getInputStream());
-        sortCourseList.forEach(v -> v.setSemesterId(semesterId));
-        sortCourseService.insertSortCourseList(sortCourseList);
-        return new Result<>();
-    }
 
     @RequestMapping(value = "/mergeCourseHead", method = RequestMethod.PUT)
     @ApiOperation(value = "课头合并")
     public Result<Object> merge(@RequestBody List<Integer> idList) {
         sortCourseService.mergeCourseHead(idList);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/restoreCourseHead", method = RequestMethod.PUT)
     @ApiOperation(value = "课头重置")
     public Result<Object> restoreCourseHead(@RequestBody List<Integer> idList) {
         sortCourseService.restoreCourseHead(idList);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     /**
@@ -125,5 +114,17 @@ public class SortCourseController {
         workbook.write(outputStream);
         workbook.close();
         outputStream.close();
+    }
+
+    @RequestMapping(value = "/sortCourseImport", method = RequestMethod.POST)
+    @ApiOperation(value = "排课数据导入")
+    public Result<Object> sortCourseImport(MultipartFile file) throws IOException {
+        file = Optional.ofNullable(file).orElseThrow(() -> new BaseException("文件上传错误"));
+        ConditionUtil.validateTrue(!file.isEmpty()).orElseThrow(() -> new ValidateException("文件上传错误"));
+        String semesterId = file.getOriginalFilename().substring(0, 5);
+        List<SortCourse> sortCourseList = sortCourseService.excelImport(file.getInputStream());
+        sortCourseList.forEach(v -> v.setSemesterId(semesterId));
+        sortCourseService.insertSortCourseList(sortCourseList);
+        return Result.emptyResult();
     }
 }

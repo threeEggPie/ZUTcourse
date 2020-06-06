@@ -61,9 +61,9 @@ public class ExceptionHandle {
 
     @ExceptionHandler(OperationException.class)
     @ResponseBody
-    public Result<ErrorEnum> exceptionGet(OperationException e) {
+    public Result<Object> exceptionGet(OperationException e) {
         log.error("操作异常");
-        return new Result<>(e.getErrorEnum());
+        return new Result<>(e.getErrorEnum() == null ? e.getMessage() : e.getErrorEnum());
     }
 
 

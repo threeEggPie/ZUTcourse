@@ -31,7 +31,7 @@ public class SemesterController {
     @Role(RoleEnum.ADMIN)
     public Result<Object> addSemester(@RequestBody Semester semester) {
         semesterService.addSemester(semester);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.PUT)
@@ -39,7 +39,7 @@ public class SemesterController {
     @Role(RoleEnum.ADMIN)
     public Result<Object> updateSemester(@RequestBody Semester semester) {
         semesterService.updateById(semester);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/getAll", method = RequestMethod.GET)

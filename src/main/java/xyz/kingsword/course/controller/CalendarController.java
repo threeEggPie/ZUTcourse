@@ -55,7 +55,7 @@ public class CalendarController {
     @ApiOperation("更新接口，仅更新teachingContent")
     public Result<Object> update(@RequestBody Calendar calendar) {
         calendarService.update(calendar);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/search", method = RequestMethod.POST)

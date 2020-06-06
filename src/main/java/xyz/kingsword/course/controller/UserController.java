@@ -45,7 +45,7 @@ public class UserController {
     public Result<Object> login(@RequestBody User user, HttpSession session) {
         user = userService.login(user);
         setSession(user, session);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/userInfo", method = RequestMethod.GET)
@@ -67,7 +67,7 @@ public class UserController {
             }
         }
         session.invalidate();
-        return new Result<>();
+        return Result.emptyResult();
     }
 
 
@@ -78,7 +78,7 @@ public class UserController {
         User user = (User) session.getAttribute("user");
         int flag = userService.resetPassword(newPassword, user);
         ConditionUtil.validateTrue(flag == 1).orElseThrow(() -> new BaseException("旧密码错误"));
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/loginOnRole", method = RequestMethod.POST)
@@ -94,7 +94,7 @@ public class UserController {
         user.setCurrentRole(roleId);
         user.setCurrentRoleName(RoleEnum.valueOf(roleId).getContent());
         setSession(user, request.getSession());
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     private void setSession(User user, HttpSession session) {

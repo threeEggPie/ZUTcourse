@@ -50,7 +50,8 @@ public class CourseApplicationTests {
 
 
     @Test
-    public void contextLoads() {
+    public void contextLoads() throws Exception {
+        System.out.println((int) 60.0);
     }
 
     private void importStudent() throws IOException {

@@ -28,21 +28,21 @@ public class BookController {
     @ApiOperation("新增")
     public Result<Object> insert(@RequestBody Book book, String courseId) {
         bookService.insert(book, courseId);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.PUT)
     @ApiOperation("更新")
     public Result<Object> update(@RequestBody Book book) {
         bookService.update(book);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
     @ApiOperation("删除教材")
     public Result<Object> delete(@RequestBody List<Integer> idList, String courseId) {
         bookService.delete(idList, courseId);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     /**

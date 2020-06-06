@@ -75,10 +75,52 @@
             #{timeHomework,jdbcType=INTEGER}, #{timeAll,jdbcType=INTEGER}, #{theoryWeek,jdbcType=INTEGER}, 0)
   </insert>
   <insert id="importData">
-    insert course(id,`name`) values
+    insert into course (id, `name`, teacher_in_charge,
+    type, core, nature, credit, coach, coach_teacher,
+    colleges_or_departments, examination_way, research_room,
+    assessment_way, text_book, reference_book,
+    homework_proportion, test_proportion, lab_proportion,
+    attendance_proportion, performance_proportion,
+    paper_proportion, other_proportion, exam_proportion,
+    time_week, week_num, time_theory,
+    time_practical, time_computer, time_lab,
+    time_homework, time_all, theory_week, `status`) values
     <foreach collection="list" item="item" separator=",">
-      (#{item.id},#{item.name})
+      (#{item.id,jdbcType=CHAR}, #{item.name,jdbcType=CHAR}, #{item.teacherInCharge,jdbcType=CHAR},
+      #{item.type,jdbcType=INTEGER}, #{item.core,jdbcType=CHAR}, #{item.nature,jdbcType=INTEGER},
+      #{item.credit,jdbcType=INTEGER},
+      #{item.coach,jdbcType=CHAR}, #{item.coachTeacher,jdbcType=CHAR},
+      #{item.collegesOrDepartments,jdbcType=CHAR}, #{item.examinationWay,jdbcType=CHAR},
+      #{item.researchRoom,jdbcType=CHAR},
+      #{item.assessmentWay,jdbcType=INTEGER}, #{item.textBook,jdbcType=CHAR}, #{item.referenceBook,jdbcType=CHAR},
+      #{item.homeworkProportion,jdbcType=INTEGER}, #{item.testProportion,jdbcType=DOUBLE},
+      #{item.labProportion,jdbcType=DOUBLE},
+      #{item.attendanceProportion,jdbcType=DOUBLE}, #{item.performanceProportion,jdbcType=DOUBLE},
+      #{item.paperProportion,jdbcType=REAL}, #{item.otherProportion,jdbcType=DOUBLE},
+      #{item.examProportion,jdbcType=DOUBLE},
+      #{item.timeWeek,jdbcType=INTEGER}, #{item.weekNum,jdbcType=INTEGER}, #{item.timeTheory,jdbcType=INTEGER},
+      #{item.timePractical,jdbcType=INTEGER}, #{item.timeComputer,jdbcType=INTEGER}, #{item.timeLab,jdbcType=INTEGER},
+      #{item.timeHomework,jdbcType=INTEGER}, #{item.timeAll,jdbcType=INTEGER}, #{item.theoryWeek,jdbcType=INTEGER}, 0)
     </foreach>
+    ON DUPLICATE KEY UPDATE
+    name=values(name),teacher_in_charge=values(teacher_in_charge),type=values(type),core=values(core),
+    nature=values(nature),credit=values(credit),coach=values(coach),coach_teacher=values(coach_teacher),
+    colleges_or_departments=values(colleges_or_departments),examination_way=values(examination_way),
+    research_room=values(research_room),assessment_way=values(assessment_way),homework_proportion=values(homework_proportion),
+    test_proportion=values(test_proportion),lab_proportion=values(lab_proportion),attendance_proportion=values(attendance_proportion),
+    performance_proportion=values(performance_proportion),
+    paper_proportion=values(paper_proportion),
+    other_proportion=values(other_proportion),
+    exam_proportion=values(exam_proportion),
+    time_week=values(time_week),
+    week_num=values(week_num),
+    time_theory=values(time_theory),
+    time_practical=values(time_practical),
+    time_computer=values(time_computer),
+    time_lab=values(time_lab),
+    time_homework=values(time_homework),
+    time_all=values(time_all),
+    theory_week=values(theory_week)
   </insert>
   <update id="updateByPrimaryKey" parameterType="xyz.kingsword.course.pojo.Course">
     update course
@@ -113,6 +155,8 @@
         theory_week             = #{theoryWeek,jdbcType=INTEGER}
     where id = #{id,jdbcType=CHAR}
   </update>
+
+
   <delete id="deleteCourse">
     delete course
     where id in

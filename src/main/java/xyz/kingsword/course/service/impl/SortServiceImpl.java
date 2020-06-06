@@ -8,13 +8,13 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.page.PageMethod;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import xyz.kingsword.course.vo.SortCourseVo;
 import xyz.kingsword.course.dao.CourseGroupMapper;
 import xyz.kingsword.course.dao.CourseMapper;
 import xyz.kingsword.course.dao.SortCourseMapper;
@@ -32,6 +32,7 @@ import xyz.kingsword.course.service.TeacherService;
 import xyz.kingsword.course.util.ConditionUtil;
 import xyz.kingsword.course.util.SpringContextUtil;
 import xyz.kingsword.course.util.TimeUtil;
+import xyz.kingsword.course.vo.SortCourseVo;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -197,16 +198,13 @@ public class SortServiceImpl implements SortCourseService {
             String className = row.getCell(4).getStringCellValue().trim();
             String[] classNameArray = ReUtil.delAll("\\([^)]*\\)", className).split(",");
 
-//            Validator.validateFalse(classNameArray.length == 0, "第" + (row.getRowNum() + 1) + "行班级名称有误");
             List<Classes> classesList = classesService.getByName(Arrays.asList(classNameArray));
-//            Validator.validateTrue(classesList.size() == classNameArray.length, "第" + (row.getRowNum() + 1) + "行班级名称有误");
             className = classesList.parallelStream().map(Classes::getClassname).collect(Collectors.joining(" "));
             sortCourse.setClassName(className);
             sortCourse.setStudentNum(classesList.stream().mapToInt(Classes::getStudentNum).sum());
 
             String teaName = row.getCell(12).getStringCellValue();
             Teacher teacher = Optional.ofNullable(teacherService.getByName(teaName).get(0)).orElseThrow(() -> new DataException("第" + (row.getRowNum() + 1) + "行教师姓名有误"));
-//            sortCourse.setTeaId(teacher.getId());
             sortCourse.setStatus(0);
             sortCourseList.add(sortCourse);
         }

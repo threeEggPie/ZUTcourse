@@ -5,6 +5,7 @@ import xyz.kingsword.course.vo.CourseVo;
 import xyz.kingsword.course.pojo.Course;
 import xyz.kingsword.course.pojo.param.CourseSelectParam;
 
+import java.io.InputStream;
 import java.util.List;
 
 public interface CourseService {
@@ -23,5 +24,6 @@ public interface CourseService {
 
     void resetBookManager(String courseId);
 
-//    List<Course> selectCourseOnTeacher(String teaId, String semester, int pageNum, int pageSize);
+    void importData(InputStream inputStream);
+
 }
