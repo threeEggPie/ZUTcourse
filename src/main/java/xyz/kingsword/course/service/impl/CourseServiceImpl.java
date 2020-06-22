@@ -19,7 +19,6 @@ import xyz.kingsword.course.enmu.CourseTypeEnum;
 import xyz.kingsword.course.exception.DataException;
 import xyz.kingsword.course.exception.OperationException;
 import xyz.kingsword.course.pojo.Course;
-import xyz.kingsword.course.pojo.CourseGroup;
 import xyz.kingsword.course.pojo.Teacher;
 import xyz.kingsword.course.pojo.param.CourseSelectParam;
 import xyz.kingsword.course.service.BookService;
@@ -35,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static xyz.kingsword.course.enmu.ErrorEnum.REPEATED_ID;
 
@@ -149,11 +147,11 @@ public class CourseServiceImpl implements CourseService {
             for (Course course : courseList) {
                 CourseVo courseVo = new CourseVo();
                 BeanUtils.copyProperties(course, courseVo);
-                List<String> courseGroupList = courseGroupMapper.getNextSemesterCourseGroup(course.getId()).parallelStream().map(CourseGroup::getTeacherName).collect(Collectors.toList());
+//                List<String> courseGroupList = courseGroupMapper.getSemesterCourseGroup(course.getId(), smesterId).parallelStream().map(CourseGroup::getTeacherName).collect(Collectors.toList());
                 courseVo.setType(course.getType());
                 courseVo.setAssessmentWay(AssessmentEnum.getContent(course.getAssessmentWay()).getContent());
                 courseVo.setBookList(bookService.getByIdList(course.getTextBook()));
-                courseVo.setCourseGroup(courseGroupList);
+//                courseVo.setCourseGroup(courseGroupList);
                 if (courseVo.getBookManager() != null) {
                     Teacher bookManager = Optional.ofNullable(teacherService.getTeacherById(courseVo.getBookManager())).orElseThrow(DataException::new);
                     courseVo.setBookManagerId(course.getBookManager());

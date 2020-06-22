@@ -39,7 +39,7 @@ public interface SortCourseMapper {
     /**
      * 获取排课历史信息
      */
-    List<SortCourseVo> getTeacherHistory(@Param("teacherId") String teacherId, @Param("semesterId") String semesterId);
+    List<SortCourseVo> getTeacherHistory(@Param("teacherId") String teacherId);
 
     List<SortCourseVo> getCourseHistory(@Param("courseId") String courseId);
 

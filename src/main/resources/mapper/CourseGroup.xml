@@ -46,11 +46,11 @@
     </where>
     order by semester_id
   </select>
-  <select id="getNextSemesterCourseGroup" resultMap="BaseResultMap">
+  <select id="getSemesterCourseGroup" resultMap="BaseResultMap">
     SELECT *
     FROM course_group_view
-    WHERE cou_id = #{semesterId}
-      AND semester_id = (SELECT max(semester_id) FROM sortcourse_view)
+    WHERE cou_id = #{courseId}
+      AND semester_id = #{semesterId}
     group by tea_id
   </select>
   <select id="selectDistinct" resultMap="BaseResultMap">

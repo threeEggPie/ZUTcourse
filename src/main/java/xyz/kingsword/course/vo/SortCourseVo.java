@@ -20,6 +20,8 @@ public class SortCourseVo {
 
     private String nature;
 
+    private int timeAll;
+
     /**
      * 学生总数
      */
@@ -27,7 +29,6 @@ public class SortCourseVo {
 
     private Integer classroomId;
 
-//    private String classroomName;
 
     /**
      * 学期id

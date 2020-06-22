@@ -53,10 +53,10 @@
         and course_name like concat('%',#{courseName},'%')
       </if>
       <if test="sortCourseFlag==-1">
-        and tea_id is null
+        and tea_id = '0'
       </if>
       <if test="sortCourseFlag==1">
-        and tea_id is not null
+        and tea_id != '0'
       </if>
     </where>
     order by semester_id,cou_id,tea_id
@@ -82,7 +82,7 @@
            class
     from sortcourse_view
     where tea_id = #{teacherId}
-      and semester_id &lt; #{semesterId}
+      and semester_id &lt; (select max(id) from semester)
   </select>
 
   <select id="getCourseHistory" resultMap="SortCourseViewMap">
@@ -97,10 +97,9 @@
            student_num,
            semester_id,
            class
-    FROM sortcourse_view,
-         semester
+    FROM sortcourse_view
     WHERE cou_id = #{courseId}
-      AND semester.id = semester_id
+      and semester_id &lt; (select max(id) from semester)
   </select>
   <select id="selectMaxId" resultType="java.lang.Integer">
     select max(id)

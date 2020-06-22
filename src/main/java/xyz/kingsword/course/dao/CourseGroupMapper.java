@@ -1,5 +1,6 @@
 package xyz.kingsword.course.dao;
 
+import org.apache.ibatis.annotations.Param;
 import xyz.kingsword.course.pojo.CourseGroup;
 import xyz.kingsword.course.pojo.param.CourseGroupSelectParam;
 
@@ -19,7 +20,7 @@ public interface CourseGroupMapper {
      */
     List<CourseGroup> selectDistinct(CourseGroupSelectParam courseGroupSelectParam);
 
-    List<CourseGroup> getNextSemesterCourseGroup(String courseId);
+    List<CourseGroup> getSemesterCourseGroup(@Param("courseId") String courseId, @Param("semesterId") String semesterId);
 
     List<CourseGroup> geyByClasses(String className);
 }

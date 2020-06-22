@@ -39,7 +39,7 @@ public class SortCourseController {
     @ApiOperation(value = "排课列表搜索接口")
     @ApiImplicitParam(name = "searchParam", value = "参数自由组合", required = true)
     public Result<Object> search(@RequestBody SortCourseSearchParam sortCourseSearchParam) {
-        PageInfo pageInfo = sortCourseService.search(sortCourseSearchParam);
+        PageInfo<SortCourseVo> pageInfo = sortCourseService.search(sortCourseSearchParam);
         return new Result<>(pageInfo);
     }
 
@@ -51,9 +51,10 @@ public class SortCourseController {
         return new Result<>(sortCourseVoList);
     }
 
-    @RequestMapping(value = "/teacherHistory", method = RequestMethod.GET)
+
     @ApiOperation(value = "教师教授记录")
     @ApiImplicitParam(name = "teacherId", value = "教师id", paramType = "query", required = true, dataType = "String")
+    @RequestMapping(value = "/teacherHistory", method = RequestMethod.GET)
     public Result<Object> teacherHistory(String teacherId) {
         List<SortCourseVo> sortCourseVoList = sortCourseService.getTeacherHistory(teacherId);
         return new Result<>(sortCourseVoList);

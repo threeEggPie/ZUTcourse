@@ -26,48 +26,48 @@ import java.util.Optional;
 /**
  * 比较简单的权限验证方式，更灵活的可以考虑shiro
  */
-//@Slf4j
-//@Aspect
-//@Component
-//public class HttpAspect {
-//
-//    @Pointcut("execution(* xyz.kingsword.course.controller..*.*(..))")
-//    public void log() {
-//
-//    }
-//
-//    @Before("log()")
-//    public void doBefore(JoinPoint joinPoint) {
-////        获取方法签名
-//        Signature signature = joinPoint.getSignature();
-//        MethodSignature methodSignature = (MethodSignature) signature;
-//        Method method = methodSignature.getMethod();
-//        if (method.isAnnotationPresent(Role.class)) {
-//            Role role = method.getAnnotation(Role.class);
-//            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-//            if (attributes != null) {
-//                HttpServletRequest request = attributes.getRequest();
-//                HttpSession session = request.getSession();
-//                User user = (User) session.getAttribute("user");
-//                Optional.ofNullable(user).orElseThrow(() -> new AuthException(ErrorEnum.UN_LOGIN));
-//                int roleId = user.getCurrentRole();
-//                boolean flag = ArrayUtil.contains(role.value(), RoleEnum.valueOf(roleId));
-//                ConditionUtil.validateTrue(flag).orElseThrow(AuthException::new);
-//            }
-//        }
-//        printRequest(joinPoint);
-//    }
-//
-//    /**
-//     * 打印请求信息，测试专用
-//     */
-//    private void printRequest(JoinPoint joinPoint) {
-//        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-//        if (attributes != null) {
-//            HttpServletRequest request = attributes.getRequest();
-//            log.debug("aop url = {}", request.getRequestURL());
-//            log.debug("aop method = {}", request.getMethod());
-//            log.debug("aop args = {}", joinPoint.getArgs());
-//        }
-//    }
-//}
+@Slf4j
+@Aspect
+@Component
+public class HttpAspect {
+
+    @Pointcut("execution(* xyz.kingsword.course.controller..*.*(..))")
+    public void log() {
+
+    }
+
+    @Before("log()")
+    public void doBefore(JoinPoint joinPoint) {
+//        获取方法签名
+        Signature signature = joinPoint.getSignature();
+        MethodSignature methodSignature = (MethodSignature) signature;
+        Method method = methodSignature.getMethod();
+        if (method.isAnnotationPresent(Role.class)) {
+            Role role = method.getAnnotation(Role.class);
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                HttpSession session = request.getSession();
+                User user = (User) session.getAttribute("user");
+                Optional.ofNullable(user).orElseThrow(() -> new AuthException(ErrorEnum.UN_LOGIN));
+                int roleId = user.getCurrentRole();
+                boolean flag = ArrayUtil.contains(role.value(), RoleEnum.valueOf(roleId));
+                ConditionUtil.validateTrue(flag).orElseThrow(AuthException::new);
+            }
+        }
+        printRequest(joinPoint);
+    }
+
+    /**
+     * 打印请求信息，测试专用
+     */
+    private void printRequest(JoinPoint joinPoint) {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes != null) {
+            HttpServletRequest request = attributes.getRequest();
+            log.debug("aop url = {}", request.getRequestURL());
+            log.debug("aop method = {}", request.getMethod());
+            log.debug("aop args = {}", joinPoint.getArgs());
+        }
+    }
+}

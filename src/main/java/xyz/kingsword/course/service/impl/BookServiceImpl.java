@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.kingsword.course.dao.*;
@@ -21,6 +20,7 @@ import xyz.kingsword.course.service.BookOrderService;
 import xyz.kingsword.course.service.BookService;
 import xyz.kingsword.course.util.ConditionUtil;
 import xyz.kingsword.course.util.SpringContextUtil;
+import xyz.kingsword.course.util.TimeUtil;
 import xyz.kingsword.course.util.UserUtil;
 
 import javax.annotation.Resource;
@@ -150,7 +150,7 @@ public class BookServiceImpl implements BookService {
         });
 //        查课程组所有老师
         CourseGroupMapper courseGroupMapper = SpringContextUtil.getBean(CourseGroupMapper.class);
-        List<CourseGroup> courseGroupList = courseGroupMapper.getNextSemesterCourseGroup(courseId);
+        List<CourseGroup> courseGroupList = courseGroupMapper.getSemesterCourseGroup(courseId, TimeUtil.getNextSemester().getId());
         book.setForTeacher(courseGroupList.size());
         bookMapper.insert(book);
         int bookId = book.getId();

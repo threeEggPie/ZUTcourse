@@ -27,6 +27,9 @@
         student_num = #{studentNum,jdbcType=INTEGER}
     where classname = #{classname,jdbcType=CHAR}
   </update>
+  <update id="updateStudentNum">
+    update classes set student_num=(SELECT count(id) from student where class_name=#{className}) where classname=#{className};
+  </update>
   <select id="select" resultMap="BaseResultMap">
     select classes.*
     from classes,speciality

@@ -5,11 +5,15 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.poi.exceptions.POIException;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.page.PageMethod;
+import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.stereotype.Service;
@@ -21,7 +25,10 @@ import xyz.kingsword.course.enmu.CourseTypeEnum;
 import xyz.kingsword.course.enmu.ErrorEnum;
 import xyz.kingsword.course.exception.DataException;
 import xyz.kingsword.course.exception.OperationException;
-import xyz.kingsword.course.pojo.*;
+import xyz.kingsword.course.pojo.Course;
+import xyz.kingsword.course.pojo.CourseGroup;
+import xyz.kingsword.course.pojo.SortCourse;
+import xyz.kingsword.course.pojo.Teacher;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
 import xyz.kingsword.course.pojo.param.TeacherSelectParam;
@@ -88,15 +95,18 @@ public class SortServiceImpl implements SortCourseService {
     @Override
     public List<SortCourseVo> getCourseHistory(String courseId) {
         List<SortCourseVo> sortCourseVoList = sortcourseMapper.getCourseHistory(courseId);
-        renderSortCourseVo(sortCourseVoList);
+//        renderSortCourseVo(sortCourseVoList);
         return sortCourseVoList;
     }
 
     @Override
     public List<SortCourseVo> getTeacherHistory(String teacherId) {
-        String nowSemesterId = TimeUtil.getNowSemester().getId();
-        List<SortCourseVo> sortCourseVoList = sortcourseMapper.getTeacherHistory(teacherId, nowSemesterId);
-        renderSortCourseVo(sortCourseVoList);
+        List<SortCourseVo> sortCourseVoList = sortcourseMapper.getTeacherHistory(teacherId);
+        if (!sortCourseVoList.isEmpty()) {
+            Map<String, Course> courseMap = courseMapper.getByIdList(sortCourseVoList.stream().map(SortCourseVo::getCourseId).collect(Collectors.toList())).stream().collect(Collectors.toMap(Course::getId, v -> v));
+            sortCourseVoList.forEach(v -> v.setTimeAll(courseMap.get(v.getCourseId()).getTimeAll()));
+        }
+//        renderSortCourseVo(sortCourseVoList);
         return sortCourseVoList;
     }
 
@@ -113,7 +123,7 @@ public class SortServiceImpl implements SortCourseService {
      * @param idList 待合并课头id
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void mergeCourseHead(List<Integer> idList) {
         List<SortCourse> sortCourseList = sortcourseMapper.getById(idList);
         mergeCheck(sortCourseList);
@@ -137,7 +147,7 @@ public class SortServiceImpl implements SortCourseService {
      * 重置课头，先把合并的课头删除，再把被合并进去的课头状态改为正常显示
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void restoreCourseHead(List<Integer> idList) {
         sortcourseMapper.deleteSortCourseRecord(idList);
         List<SortCourse> sortCourseList = sortcourseMapper.getById(idList);
@@ -162,10 +172,11 @@ public class SortServiceImpl implements SortCourseService {
     /**
      * 为sortCourseVo添加教材
      */
-    private void renderSortCourseVo(List<SortCourseVo> sortCourseVoList) {
+    private void renderSortCourseVo(@NonNull List<SortCourseVo> sortCourseVoList) {
+        String semesterId = sortCourseVoList.get(0).getSemesterId();
         for (SortCourseVo sortCourseVo : sortCourseVoList) {
             CourseGroupMapper courseGroupMapper = SpringContextUtil.getBean(CourseGroupMapper.class);
-            List<String> courseGroup = courseGroupMapper.getNextSemesterCourseGroup(sortCourseVo.getCourseId()).parallelStream().map(CourseGroup::getTeacherName).collect(Collectors.toList());
+            List<String> courseGroup = courseGroupMapper.getSemesterCourseGroup(sortCourseVo.getCourseId(), semesterId).parallelStream().map(CourseGroup::getTeacherName).collect(Collectors.toList());
             sortCourseVo.setBookList(bookService.getByIdList(sortCourseVo.getTextBookString()));
             sortCourseVo.setCourseGroup(courseGroup);
             if (sortCourseVo.getBookManager() != null) {
@@ -193,7 +204,7 @@ public class SortServiceImpl implements SortCourseService {
         } catch (IOException e) {
             log.error("排课信息导入失败，excel无法打开");
             log.error(ExceptionUtil.stacktraceToString(e));
-            throw new OperationException("课程信息导入失败，excel无法打开");
+            throw new POIException("课程信息导入失败，excel无法打开");
         }
         Sheet sheet = workbook.getSheetAt(0);
         restoreCellRange(sheet);
@@ -203,7 +214,7 @@ public class SortServiceImpl implements SortCourseService {
                 .stream()
                 .collect(Collectors.toMap(Teacher::getName, Teacher::getId));
 //      添加系统中不存在的教师
-        List<Teacher> teacherList = new ArrayList<>();
+        List<Teacher> teacherList = new ArrayList<>(20);
         for (int i = 6; i < sheet.getLastRowNum() - 1; i++) {
             Row row = sheet.getRow(i);
             String name = row.getCell(12).getStringCellValue();
@@ -227,9 +238,10 @@ public class SortServiceImpl implements SortCourseService {
             sortCourse.setSemesterId(semesterId);
             String teacherName = row.getCell(12).getStringCellValue();
             if (teacherName == null || teacherName.isEmpty()) {
-                teacherName = "默认教师";
+                sortCourse.setTeaId("0");
+            } else {
+                sortCourse.setTeaId(teacherMap.get(teacherName));
             }
-            sortCourse.setTeaId(teacherMap.get(teacherName));
             sortCourseList.add(sortCourse);
         }
         sortcourseMapper.insert(sortCourseList);
@@ -238,9 +250,64 @@ public class SortServiceImpl implements SortCourseService {
     }
 
     /**
+     * 导入之前学期，排好课的excel
+     *
+     * @param inputStream inputStream
+     */
+    public void postExcelImport(InputStream inputStream) {
+        Workbook workbook;
+        try {
+            workbook = new HSSFWorkbook(inputStream);
+        } catch (IOException e) {
+            log.error("排课信息导入失败，excel无法打开");
+            log.error(ExceptionUtil.stacktraceToString(e));
+            throw new POIException("课程信息导入失败，excel无法打开");
+        }
+        Sheet sheet = workbook.getSheetAt(0);
+        String semesterId = TimeUtil.getSemesterId(sheet.getRow(2).getCell(0).getStringCellValue());
+        Map<String, String> teacherMap = teacherService.select(TeacherSelectParam.builder().pageSize(0).build())
+                .getList()
+                .stream()
+                .collect(Collectors.toMap(Teacher::getName, Teacher::getId));
+//      添加系统中不存在的教师
+        List<Teacher> teacherList = new ArrayList<>(20);
+        for (int i = 6; i < sheet.getLastRowNum() - 1; i++) {
+            Row row = sheet.getRow(i);
+            String name = row.getCell(12).getStringCellValue();
+            if (!teacherMap.containsKey(name)) {
+                Teacher teacher = new Teacher();
+                String id = PinYinTool.getInstance().toPinYin(name);
+                teacher.setId(id);
+                teacherMap.put(name, id);
+            }
+        }
+        teacherService.insert(teacherList);
+
+        List<SortCourse> sortCourseList = new ArrayList<>(sheet.getLastRowNum());
+        for (int i = 6; i < sheet.getLastRowNum() - 1; i++) {
+            Row row = sheet.getRow(i);
+            SortCourse sortCourse = new SortCourse();
+            sortCourse.setCouId(row.getCell(1).getStringCellValue());
+            sortCourse.setClassName(row.getCell(3).getStringCellValue().trim());
+            int studentNum = row.getCell(4).getStringCellValue().isEmpty() ? 0 : Integer.parseInt(row.getCell(4).getStringCellValue());
+            sortCourse.setStudentNum(studentNum);
+            sortCourse.setSemesterId(semesterId);
+            String teacherName = row.getCell(12).getStringCellValue();
+            if (teacherName == null || teacherName.isEmpty()) {
+                sortCourse.setTeaId("0");
+            } else {
+                sortCourse.setTeaId(teacherMap.get(teacherName));
+            }
+            sortCourseList.add(sortCourse);
+        }
+        sortcourseMapper.insert(sortCourseList);
+        autoMerge(sheet, sortCourseList);
+    }
+
+    /**
      * 依赖合并单元格确定合班
      *
-     * @param sheet
+     * @param sheet          sheet
      * @param sortCourseList 须借助排课id
      */
     private void autoMerge(Sheet sheet, List<SortCourse> sortCourseList) {
@@ -277,23 +344,15 @@ public class SortServiceImpl implements SortCourseService {
     }
 
     @Override
+    @SneakyThrows(Exception.class)
     public Workbook excelExport(String semesterId) {
         InputStream inputStream = SortServiceImpl.class.getClassLoader().getResourceAsStream("templates/sortCourse.xls");
-        Workbook workbook;
-        try {
-            workbook = new HSSFWorkbook(inputStream);
-            inputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        Workbook workbook = new HSSFWorkbook(inputStream);
         Sheet sheet = workbook.getSheetAt(0);
-//        setExcelHeader(workbook, semesterId);
         CellStyle cellStyle = getBaseCellStyle(workbook);
         String[][] data = renderExportData(semesterId);
         int startRow = 6;
         Row row = sheet.getRow(2);
-        row.setRowStyle(cellStyle);
         row.getCell(0).setCellValue(TimeUtil.getSemesterName(semesterId));
         for (int i = 0; i < data.length; i++) {
             row = sheet.createRow(i + startRow);
@@ -303,71 +362,75 @@ public class SortServiceImpl implements SortCourseService {
                 cell.setCellValue(data[i][j]);
             }
         }
-        renderFoot(workbook);
+        Row lastRow = sheet.createRow(sheet.getLastRowNum());
+
+        CellStyle singleStyle = workbook.createCellStyle();
+        singleStyle.cloneStyleFrom(cellStyle);
+        singleStyle.setAlignment(HorizontalAlignment.LEFT);
+
+        for (int i = 0; i < 21; i++) {
+            Cell cell1 = lastRow.createCell(i);
+            cell1.setCellStyle(singleStyle);
+        }
+
+        sheet.addMergedRegion(new CellRangeAddress(lastRow.getRowNum(), lastRow.getRowNum(), 0, 20));
+        lastRow.getCell(0).setCellValue("学院（部）院长签字：                                                                          系（教研室）主任签字：                                                                                          打印时间:" + LocalDate.now().toString());
+        lastRow.setHeight((short) 700);
+
         return workbook;
-    }
-
-    private void renderFoot(Workbook workbook) {
-        CellStyle cellStyle = getBaseCellStyle(workbook);
-        cellStyle.setAlignment(HorizontalAlignment.LEFT);
-        Sheet sheet = workbook.getSheetAt(0);
-        final int lastRow = sheet.getLastRowNum();
-        Row row = sheet.createRow(lastRow + 1);
-        row.setRowStyle(getBaseCellStyle(workbook));
-//        设置内容
-        row.createCell(0).setCellValue("学院（部）院长签字：");
-        row.createCell(5).setCellValue("系（教研室）主任签字：");
-        row.createCell(16).setCellValue("打印日期：");
-        row.createCell(18).setCellValue(LocalDate.now().toString());
-//          设置样式
-        row.getCell(0).setCellStyle(cellStyle);
-        row.getCell(5).setCellStyle(cellStyle);
-        row.getCell(16).setCellStyle(cellStyle);
-        row.getCell(18).setCellStyle(cellStyle);
-
-        sheet.addMergedRegion(new CellRangeAddress(lastRow + 1, lastRow + 2, 0, 3));
-        sheet.addMergedRegion(new CellRangeAddress(lastRow + 1, lastRow + 2, 5, 9));
-        sheet.addMergedRegion(new CellRangeAddress(lastRow + 1, lastRow + 2, 16, 17));
-        sheet.addMergedRegion(new CellRangeAddress(lastRow + 1, lastRow + 2, 18, 19));
     }
 
     /**
      * 构建导出排课表数据
-     * （课序号未导出）
      */
     private String[][] renderExportData(String semesterId) {
         List<SortCourseVo> sortCourseList = sortcourseMapper.search(SortCourseSearchParam.builder().semesterId(semesterId).build());
-        String[][] data = new String[sortCourseList.size()][19];
+        String[][] data = new String[sortCourseList.size()][21];
+        int courseHeadNum = 1;
+        String lastCourseId = sortCourseList.get(0).getCourseId();
+        Map<String, Integer> classStudentNum = classesService.getClassStudentNum();
+        Map<String, Course> courseMap = courseMapper.getByIdList(sortCourseList.stream().map(SortCourseVo::getCourseId).collect(Collectors.toList()))
+                .stream().collect(Collectors.toMap(Course::getId, v -> v));
         for (int i = 0; i < sortCourseList.size(); i++) {
             SortCourseVo sortCourseVo = sortCourseList.get(i);
-            String[] strings = new String[20];
+            String[] strings = new String[21];
+            Arrays.fill(strings, StrUtil.EMPTY);
             String courseId = sortCourseVo.getCourseId();
-            Course course = courseMapper.getByPrimaryKey(courseId).orElseThrow(DataException::new);
+            Course course = courseMap.get(courseId);
             strings[0] = String.valueOf(i + 1);
             strings[1] = courseId;
-            strings[2] = course.getName();
-            String[] classesNameArray = sortCourseVo.getClassName().split(" ");
-            List<Classes> classesList = classesService.getByName(Arrays.asList(classesNameArray));
-            int allStudentNum = 0;
-            strings[3] = "";
-            StrBuilder classInfo = StrBuilder.create();
-            for (Classes classes : classesList) {
-                allStudentNum += classes.getStudentNum();
-                classInfo.append(classes.getClassname()).append("(").append(classes.getStudentNum()).append(")").append(",");
+            if (!lastCourseId.equals(courseId)) {
+                courseHeadNum = 1;
             }
+            lastCourseId = courseId;
+            strings[2] = String.valueOf(0) + courseHeadNum;
+            courseHeadNum++;
+            strings[3] = course.getName();
+            String[] classesArray = sortCourseVo.getClassName().split(",");
+            if (classesArray[0].length() < 5) {
+                strings[5] = String.valueOf(0);
+            } else {
+                int allStudentNum = 0;
+                StrBuilder classInfo = StrBuilder.create();
+                for (String className : classesArray) {
+                    allStudentNum += classStudentNum.get(className);
+                    classInfo.append(className).append("(").append(classStudentNum.get(className)).append(")").append(",");
+                }
 //            去除最后一个逗号
-            strings[3] = classInfo.subString(0, classInfo.length() - 1);
-            strings[4] = String.valueOf(allStudentNum);
-            strings[5] = StrBuilder.create().append(course.getWeekNum()).append("/").append(course.getTimeWeek()).toStringAndReset();
-            strings[6] = String.valueOf(course.getTimeAll());
-            strings[7] = String.valueOf(course.getCredit());
-            strings[8] = CourseTypeEnum.get(course.getType()).getContent();
-            strings[9] = String.valueOf(course.getNature());
-            strings[10] = course.getExaminationWay();
-            strings[11] = sortCourseVo.getTeacherName();
-            strings[12] = String.valueOf(course.getTimeTheory());
-            strings[15] = String.valueOf(course.getTimeAll() - course.getTimeTheory());
+                strings[4] = classInfo.subString(0, classInfo.length() - 1);
+                strings[5] = String.valueOf(allStudentNum);
+            }
+            strings[6] = StrBuilder.create().append(course.getWeekNum()).append("/").append(course.getTimeWeek()).toStringAndReset();
+            strings[7] = String.valueOf(course.getTimeAll());
+            strings[8] = String.valueOf(course.getCredit());
+            strings[9] = CourseTypeEnum.get(course.getType()).getContent();
+            strings[10] = course.getNature() == 1 ? "选修课" : "必修课";
+            strings[11] = course.getExaminationWay();
+            strings[12] = "0".equals(sortCourseVo.getTeacherId()) ? StrUtil.EMPTY : sortCourseVo.getTeacherName();
+            strings[13] = String.valueOf(course.getTimeTheory());
+            strings[16] = String.valueOf(course.getTimeLab());
             data[i] = strings;
+
         }
         return data;
     }
@@ -378,10 +441,19 @@ public class SortServiceImpl implements SortCourseService {
         font.setFontName("SimSun");
         font.setFontHeightInPoints((short) 9);
         CellStyle cellStyle = workbook.createCellStyle();
-        cellStyle.setWrapText(true);//自动换行
-        cellStyle.setAlignment(HorizontalAlignment.CENTER);//水平居中
-        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);//垂直居中
+        cellStyle.setWrapText(true);
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         cellStyle.setFont(font);
+
+        cellStyle.setBorderBottom(BorderStyle.THIN);
+        cellStyle.setBorderLeft(BorderStyle.THIN);
+        cellStyle.setBorderTop(BorderStyle.THIN);
+        cellStyle.setBorderRight(BorderStyle.THIN);
+        cellStyle.setTopBorderColor(HSSFColor.HSSFColorPredefined.SKY_BLUE.getIndex());
+        cellStyle.setBottomBorderColor(HSSFColor.HSSFColorPredefined.SKY_BLUE.getIndex());
+        cellStyle.setLeftBorderColor(HSSFColor.HSSFColorPredefined.SKY_BLUE.getIndex());
+        cellStyle.setRightBorderColor(HSSFColor.HSSFColorPredefined.SKY_BLUE.getIndex());
         return cellStyle;
     }
 
