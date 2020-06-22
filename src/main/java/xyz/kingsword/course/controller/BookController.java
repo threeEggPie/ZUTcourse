@@ -84,7 +84,7 @@ public class BookController {
     @RequestMapping(value = "/list", method = RequestMethod.POST)
     @ApiOperation("根据id批量查")
     public Result<Object> list(@RequestBody List<Integer> idList) {
-        List<Book> bookList = bookService.getByIdList(idList);
+        List<Book> bookList = bookService.getByBookIdList(idList);
         return new Result<>(bookList);
     }
 

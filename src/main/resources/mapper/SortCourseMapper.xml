@@ -20,12 +20,11 @@
     <result column="cou_id" jdbcType="CHAR" property="courseId"/>
     <result column="course_name" jdbcType="INTEGER" property="courseName"/>
     <result column="nature" jdbcType="CHAR" property="nature"/>
+    <result column="type" jdbcType="CHAR" property="type"/>
     <result column="student_num" jdbcType="INTEGER" property="studentNum"/>
     <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
     <result column="class" jdbcType="CHAR" property="className"/>
     <result column="book_manager" jdbcType="CHAR" property="bookManager"/>
-    <result column="text_book" jdbcType="CHAR" property="textBookString"/>
-    <result column="reference_book" jdbcType="CHAR" property="referenceBookString"/>
     <result column="text_book_num" jdbcType="INTEGER" property="textBookNum"/>
     <result column="reference_book_num" jdbcType="INTEGER" property="referenceBookNum"/>
   </resultMap>
@@ -36,8 +35,7 @@
   </select>
   <select id="search" resultMap="SortCourseViewMap">
     select sortcourse_id as id, tea_id, teacher_name, cou_id, course_name,
-    nature,text_book,reference_book,JSON_LENGTH(text_book) as text_book_num,
-    student_num, semester_id, class,book_manager
+    nature,`type`,student_num, semester_id, class,book_manager
     from sortcourse_view
     <where>
       <if test="teaId !=null and teaId !=''">
@@ -48,6 +46,15 @@
       </if>
       <if test="semesterId !=null and semesterId !=''">
         and semester_id=#{semesterId}
+      </if>
+      <if test="courseName !=null and courseName!=''">
+        and course_name like concat('%',#{courseName},'%')
+      </if>
+      <if test="type !=null">
+        and type =#{type}
+      </if>
+      <if test="nature !=null">
+        and nature =#{nature}
       </if>
       <if test="courseName !=null and courseName!=''">
         and course_name like concat('%',#{courseName},'%')
@@ -75,8 +82,6 @@
            cou_id,
            course_name,
            nature,
-           text_book,
-           reference_book,
            student_num,
            semester_id,
            class
@@ -92,8 +97,6 @@
            cou_id,
            course_name,
            nature,
-           text_book,
-           reference_book,
            student_num,
            semester_id,
            class
@@ -156,11 +159,6 @@
       </if>
     </set>
     where id=#{id} and `status`=0
-  </update>
-  <update id="updateChainses">
-    update sortcourse
-    set tea_id=#{teaId}
-    where id = #{id}
   </update>
   <update id="setClasses">
     update sortcourse

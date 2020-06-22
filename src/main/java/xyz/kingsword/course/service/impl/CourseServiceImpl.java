@@ -147,11 +147,9 @@ public class CourseServiceImpl implements CourseService {
             for (Course course : courseList) {
                 CourseVo courseVo = new CourseVo();
                 BeanUtils.copyProperties(course, courseVo);
-//                List<String> courseGroupList = courseGroupMapper.getSemesterCourseGroup(course.getId(), smesterId).parallelStream().map(CourseGroup::getTeacherName).collect(Collectors.toList());
                 courseVo.setType(course.getType());
                 courseVo.setAssessmentWay(AssessmentEnum.getContent(course.getAssessmentWay()).getContent());
-                courseVo.setBookList(bookService.getByIdList(course.getTextBook()));
-//                courseVo.setCourseGroup(courseGroupList);
+                courseVo.setBookList(bookService.getTextBook(course.getId()));
                 if (courseVo.getBookManager() != null) {
                     Teacher bookManager = Optional.ofNullable(teacherService.getTeacherById(courseVo.getBookManager())).orElseThrow(DataException::new);
                     courseVo.setBookManagerId(course.getBookManager());

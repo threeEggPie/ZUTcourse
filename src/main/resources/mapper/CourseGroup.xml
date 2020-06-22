@@ -11,7 +11,6 @@
     <result column="class_name" jdbcType="CHAR" property="className"/>
     <result column="calendar_id" jdbcType="INTEGER" property="calendarId"/>
     <result column="course_nature" jdbcType="INTEGER" property="courseNature"/>
-    <result column="text_book" jdbcType="CHAR" property="textBookStr"/>
   </resultMap>
   <select id="select" resultMap="BaseResultMap">
     select * from course_group_view
@@ -26,10 +25,10 @@
         and type=#{type}
       </if>
       <if test="declareStatus == true">
-        and JSON_LENGTH(text_book) >0
+        and get_text_book_num(cou_id) >0
       </if>
       <if test="declareStatus == false">
-        and JSON_LENGTH(text_book) =0
+        and get_text_book_num(cou_id) =0
       </if>
       <if test="semesterId !=null and semesterId !=''">
         and semester_id=#{semesterId}

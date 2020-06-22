@@ -1,14 +1,13 @@
 package xyz.kingsword.course.service.impl;
 
 import cn.hutool.crypto.SecureUtil;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.github.pagehelper.page.PageMethod;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import xyz.kingsword.course.vo.StudentVo;
 import xyz.kingsword.course.dao.StudentMapper;
 import xyz.kingsword.course.pojo.Classes;
 import xyz.kingsword.course.pojo.Student;
@@ -16,6 +15,7 @@ import xyz.kingsword.course.pojo.param.StudentSelectParam;
 import xyz.kingsword.course.service.ClassesService;
 import xyz.kingsword.course.service.StudentService;
 import xyz.kingsword.course.util.UserUtil;
+import xyz.kingsword.course.vo.StudentVo;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,7 +81,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public PageInfo<StudentVo> select(StudentSelectParam param) {
-        return PageHelper.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> studentMapper.select(param));
+        return PageMethod.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> studentMapper.select(param));
     }
 
 }

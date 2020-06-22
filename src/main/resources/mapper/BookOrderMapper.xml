@@ -24,17 +24,6 @@
     <result column="discount" jdbcType="FLOAT" property="discount"/>
   </resultMap>
 
-  <resultMap id="BookExportViewMap" type="xyz.kingsword.course.pojo.DO.BookExportCourseDo">
-    <result column="course_name" jdbcType="CHAR" property="courseName"/>
-    <result column="course_id" jdbcType="CHAR" property="courseId"/>
-    <result column="nature" jdbcType="CHAR" property="nature"/>
-    <result column="class" jdbcType="VARCHAR" property="className"/>
-    <result column="tea_id" jdbcType="CHAR" property="teaId"/>
-    <result column="teacher_name" jdbcType="CHAR" property="teacherName"/>
-    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
-    <result column="text_book" jdbcType="CHAR" property="textBook"/>
-  </resultMap>
-
   <!--  <resultMap id="BookOrderStatisticsMap" type="xyz.kingsword.course.vo.BookOrderStatistics">-->
   <!--    <result column="book_id" property="bookId"/>-->
   <!--    <result column=""-->
@@ -53,6 +42,15 @@
     update ignore book_order
     set `status`= -1
     where id = #{id}
+  </update>
+  <update id="deleteByBook">
+    update book_order
+    set `status`= -1
+    where book_id in (
+    <foreach item="item" index="index" collection="bookIdList" separator=",">
+      #{item}
+    </foreach>
+    )
   </update>
 
   <select id="selectByBookId" resultType="java.lang.Integer">
@@ -97,12 +95,6 @@
     </where>
   </select>
 
-  <select id="export" resultMap="BookExportViewMap">
-    select *
-    from book_export_view
-    where semester_id = #{semesterId}
-    order by course_id;
-  </select>
   <select id="purchaseClass" resultType="java.lang.String">
     select distinct book_order_view.class
     from book_order_view

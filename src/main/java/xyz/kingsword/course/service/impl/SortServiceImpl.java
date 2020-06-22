@@ -9,7 +9,6 @@ import cn.hutool.poi.exceptions.POIException;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.page.PageMethod;
-import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -115,6 +114,10 @@ public class SortServiceImpl implements SortCourseService {
         PageInfo<SortCourseVo> pageInfo = PageMethod.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> sortcourseMapper.search(param));
         List<SortCourseVo> sortCourseVoList = pageInfo.getList();
         renderSortCourseVo(sortCourseVoList);
+//      如果为true就删掉bookList为空的数据
+        if (param.getDeclareStatus() != null) {
+            sortCourseVoList.removeIf(v -> v.getBookList().isEmpty() == param.getDeclareStatus());
+        }
         return PageInfo.of(sortCourseVoList, pageInfo.getNavigatePages());
     }
 
@@ -172,19 +175,22 @@ public class SortServiceImpl implements SortCourseService {
     /**
      * 为sortCourseVo添加教材
      */
-    private void renderSortCourseVo(@NonNull List<SortCourseVo> sortCourseVoList) {
-        String semesterId = sortCourseVoList.get(0).getSemesterId();
-        for (SortCourseVo sortCourseVo : sortCourseVoList) {
-            CourseGroupMapper courseGroupMapper = SpringContextUtil.getBean(CourseGroupMapper.class);
-            List<String> courseGroup = courseGroupMapper.getSemesterCourseGroup(sortCourseVo.getCourseId(), semesterId).parallelStream().map(CourseGroup::getTeacherName).collect(Collectors.toList());
-            sortCourseVo.setBookList(bookService.getByIdList(sortCourseVo.getTextBookString()));
-            sortCourseVo.setCourseGroup(courseGroup);
-            if (sortCourseVo.getBookManager() != null) {
-                Teacher bookManager = Optional.ofNullable(teacherService.getTeacherById(sortCourseVo.getBookManager())).orElseThrow(DataException::new);
-                sortCourseVo.setBookManager(bookManager.getName());
+    private void renderSortCourseVo(List<SortCourseVo> sortCourseVoList) {
+        if (CollUtil.isNotEmpty(sortCourseVoList)) {
+            String semesterId = sortCourseVoList.get(0).getSemesterId();
+            for (SortCourseVo sortCourseVo : sortCourseVoList) {
+                CourseGroupMapper courseGroupMapper = SpringContextUtil.getBean(CourseGroupMapper.class);
+                List<String> courseGroup = courseGroupMapper.getSemesterCourseGroup(sortCourseVo.getCourseId(), semesterId).parallelStream().map(CourseGroup::getTeacherName).collect(Collectors.toList());
+                sortCourseVo.setBookList(bookService.getTextBook(sortCourseVo.getCourseId()));
+                sortCourseVo.setTextBookNum(sortCourseVo.getBookList().size());
+                sortCourseVo.setCourseGroup(courseGroup);
+                if (sortCourseVo.getBookManager() != null) {
+                    Teacher bookManager = Optional.ofNullable(teacherService.getTeacherById(sortCourseVo.getBookManager())).orElseThrow(DataException::new);
+                    sortCourseVo.setBookManager(bookManager.getName());
+                }
             }
+            CollUtil.sort(sortCourseVoList, (a, b) -> StrUtil.compare(a.getCourseId(), b.getCourseId(), false));
         }
-        CollUtil.sort(sortCourseVoList, (a, b) -> StrUtil.compare(a.getCourseId(), b.getCourseId(), false));
     }
 
 

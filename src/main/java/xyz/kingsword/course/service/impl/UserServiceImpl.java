@@ -1,6 +1,7 @@
 package xyz.kingsword.course.service.impl;
 
 
+import cn.hutool.core.collection.CollUtil;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import xyz.kingsword.course.vo.*;
@@ -89,17 +90,17 @@ public class UserServiceImpl implements UserService {
         List<CourseBookOrderVo> courseBookOrderVoList = new ArrayList<>(courseGroupList.size());
         if (!courseGroupList.isEmpty()) {
             String semesterId = courseGroupList.get(0).getSemesterId();
-            Set<Integer> bookIdSet = courseGroupList.parallelStream().flatMap(v -> v.getTextBook().stream()).collect(Collectors.toSet());
-            Map<Integer, Book> bookMap = bookService.getMap(bookIdSet);
+            List<String> courseIdList = courseGroupList.stream().map(CourseGroup::getCouId).collect(Collectors.toList());
+//          [courseId,List<Book>]
+            Map<String, List<Book>> courseBookMap = bookService.getTextBookByCourseList(courseIdList).stream().collect(Collectors.groupingBy(Book::getCourseId));
             BookOrderSelectParam param = BookOrderSelectParam.builder().userId(username).semesterId(semesterId).build();
             Map<Integer, BookOrderVo> bookIdToOrder = bookOrderService.select(param).parallelStream().collect(Collectors.toMap(BookOrderVo::getBookId, v -> v));
             for (CourseGroup courseGroup : courseGroupList) {
                 List<BookOrderFlag> bookOrderFlagList = new ArrayList<>();
-                List<Integer> bookIdList = courseGroup.getTextBook();
-                if (bookIdList != null && !bookIdList.isEmpty()) {
-                    for (Integer bookId : courseGroup.getTextBook()) {
-                        Book book = bookMap.get(bookId);
-                        BookOrderVo bookOrderVo = bookIdToOrder.get(bookId);
+                List<Book> bookList = courseBookMap.get(courseGroup.getCouId());
+                if (CollUtil.isNotEmpty(bookList)) {
+                    for (Book book : bookList) {
+                        BookOrderVo bookOrderVo = bookIdToOrder.get(book.getId());
                         BookOrderFlag bookOrderFlag = BookOrderFlag.builder()
                                 .info(book).flag(bookOrderVo != null)
                                 .orderId(bookOrderVo != null ? bookOrderVo.getOrderId() : null)

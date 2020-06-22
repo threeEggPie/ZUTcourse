@@ -5,13 +5,12 @@ import xyz.kingsword.course.pojo.Book;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public interface BookService {
 
     Book insert(Book book, String courseId);
 
-    void delete(List<Integer> idList, String courseId);
+    void delete(List<Integer> bookIdList, String courseId);
 
     Book getBook(int id);
 
@@ -19,11 +18,10 @@ public interface BookService {
 
     List<Book> getTextBook(String courseId);
 
+    List<Book> getTextBookByCourseList(Collection<String> courseIdCollection);
+
     List<Book> getReferenceBook(String courseId);
 
-    List<Book> getByIdList(Collection<Integer> idList);
+    List<Book> getByBookIdList(Collection<Integer> idList);
 
-    Map<Integer, Book> getMap(Collection<Integer> idList);
-
-    List<Book> getByIdList(String json);
 }

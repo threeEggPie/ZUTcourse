@@ -59,6 +59,8 @@ public class Book implements Serializable {
     @ApiModelProperty(required = true)
     private String imgUrl;
 
+    private String courseId;
+
     /**
      * 为老师留几本书
      */

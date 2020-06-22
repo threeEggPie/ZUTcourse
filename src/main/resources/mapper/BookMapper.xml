@@ -15,6 +15,7 @@
     <result column="edition" jdbcType="CHAR" property="edition"/>
     <result column="for_teacher" jdbcType="INTEGER" property="forTeacher"/>
     <result column="img_url" jdbcType="CHAR" property="imgUrl"/>
+    <result column="course_id" jdbcType="CHAR" property="courseId"/>
   </resultMap>
 
   <sql id="Base_Column_List">
@@ -25,12 +26,12 @@
     insert into book (isbn, `name`, author,
                       publish, price, note,
                       pub_date, award, edition,
-                      for_teacher, img_url)
+                      for_teacher, img_url, course_id)
     values (#{isbn,jdbcType=CHAR}, #{name,jdbcType=CHAR}, #{author,jdbcType=CHAR},
             #{publish,jdbcType=CHAR}, #{price,jdbcType=CHAR}, #{note,jdbcType=VARCHAR},
             #{pubDate,jdbcType=CHAR}, #{award,jdbcType=CHAR}, #{edition,jdbcType=CHAR},
             #{forTeacher,jdbcType=INTEGER},
-            #{imgUrl,jdbcType=CHAR})
+            #{imgUrl,jdbcType=CHAR}, #{courseId,jdbcType=CHAR})
   </insert>
   <update id="update">
     update book
@@ -48,12 +49,6 @@
     where id = #{id}
   </update>
 
-
-  <update id="updateForTeacher">
-    update book
-    set for_teacher=#{num}
-    where id = #{id}
-  </update>
   <update id="delete">
     update book set `status`=-1 where id in (
     <foreach collection="list" item="item">
@@ -93,6 +88,19 @@
     select *
     from book
     where `status` = 0;
+  </select>
+  <select id="selectBookListByCourse" resultMap="BaseResultMap">
+    select *
+    from book
+    where book.course_id = #{courseId}
+  </select>
+  <select id="getTextBookByCourseList" resultMap="BaseResultMap">
+    select * from book where course_id in (
+    <foreach collection="collection" item="item" index="index" separator=",">
+      #{item}
+    </foreach>
+    )
+    and `status`=0
   </select>
 
 </mapper>

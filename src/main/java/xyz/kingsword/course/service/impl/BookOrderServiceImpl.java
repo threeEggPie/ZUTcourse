@@ -6,6 +6,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -86,6 +87,16 @@ public class BookOrderServiceImpl implements BookOrderService {
     }
 
     /**
+     * 根据教材id删除订单信息
+     *
+     * @param bookIdList bookIdList
+     */
+    @Override
+    public void deleteByBook(List<Integer> bookIdList) {
+        bookMapper.delete(bookIdList);
+    }
+
+    /**
      * 根据年级，默认订购必修教材
      *
      * @param gradeList  年级列表
@@ -94,32 +105,39 @@ public class BookOrderServiceImpl implements BookOrderService {
     @Override
     public void insertByGrade(Collection<Integer> gradeList, String semesterId) {
         List<BookOrder> bookOrderList = new ArrayList<>(1000);
-        ClassesMapper classesMapper = SpringContextUtil.getBean(ClassesMapper.class);
         StudentMapper studentMapper = SpringContextUtil.getBean(StudentMapper.class);
         Map<Integer, List<Classes>> classesMap = classesMapper.selectAll().parallelStream().collect(Collectors.groupingBy(Classes::getGrade));
+        List<CourseGroup> courseGroupList = courseGroupMapper.select(CourseGroupSelectParam.builder().semesterId(semesterId).nature(CourseNature.REQUIRED.getCode()).build());
+//      获取课程idList
+        List<String> courseList = courseGroupList.stream().map(CourseGroup::getCouId).collect(Collectors.toList());
+//      获取全部课程的教材id
+        Map<String, List<Book>> courseBookMap = bookService.getTextBookByCourseList(courseList).stream().collect(Collectors.groupingBy(Book::getCourseId));
         for (Integer grade : gradeList) {
             List<Classes> classesList = classesMap.get(grade);
             ConditionUtil.notEmpty(classesList).orElseThrow(() -> new DataException(ErrorEnum.NO_DATA));
             for (Classes classes : classesList) {
-                List<CourseGroup> courseGroupList = courseGroupMapper.geyByClasses(classes.getClassname());
+//              查出本班的课程信息
+                List<CourseGroup> classCourseGroupList = courseGroupList.stream().filter(v -> v.getClassName().contains(classes.getClassname())).collect(Collectors.toList());
                 List<StudentVo> studentVoList = studentMapper.select(StudentSelectParam.builder().className(classes.getClassname()).build());
-                for (CourseGroup courseGroup : courseGroupList) {
+                for (CourseGroup courseGroup : classCourseGroupList) {
                     String courseId = courseGroup.getCouId();
-                    List<Integer> idList = courseGroup.getTextBook();
-                    for (StudentVo studentVo : studentVoList) {
-                        for (Integer bookId : idList) {
-                            BookOrder bookOrder = new BookOrder();
-                            bookOrder.setUserId(studentVo.getId());
-                            bookOrder.setBookId(bookId);
-                            bookOrder.setSemesterId(semesterId);
-                            bookOrder.setCourseId(courseId);
-                            bookOrderList.add(bookOrder);
+                    List<Book> bookList = courseBookMap.get(courseId);
+                    if (CollUtil.isNotEmpty(bookList)) {
+                        for (StudentVo studentVo : studentVoList) {
+                            for (Book book : bookList) {
+                                BookOrder bookOrder = new BookOrder();
+                                bookOrder.setUserId(studentVo.getId());
+                                bookOrder.setBookId(book.getId());
+                                bookOrder.setSemesterId(semesterId);
+                                bookOrder.setCourseId(courseId);
+                                bookOrderList.add(bookOrder);
+                            }
                         }
                     }
                 }
             }
         }
-        this.insert(bookOrderList);
+        insert(bookOrderList);
     }
 
     @Override
@@ -138,8 +156,10 @@ public class BookOrderServiceImpl implements BookOrderService {
         if (courseGroupList.isEmpty()) {
             return Collections.emptyList();
         }
-        List<Integer> bookIdList = courseGroupList.get(0).getTextBook();
-        Map<Integer, Book> bookMap = bookService.getMap(bookIdList);
+        List<Book> bookList = bookService.getTextBook(courseId);
+        List<Integer> bookIdList = bookList.stream().map(Book::getId).collect(Collectors.toList());
+        Map<Integer, Book> bookMap = bookList.stream().collect(Collectors.toMap(Book::getId, v -> v));
+
         ConditionUtil.validateTrue(bookMap.size() == bookIdList.size()).orElseThrow(DataException::new);
 
         List<BookOrderVo> bookOrderVoList = bookOrderMapper.courseGroupOrderInfo(courseId, semesterId);
@@ -176,7 +196,7 @@ public class BookOrderServiceImpl implements BookOrderService {
      */
     private boolean purchaseStatusCheck() {
         if (UserUtil.isStudent()) {
-            return SpringContextUtil.getBean(Constant.class).getPurchaseStatus().equals("true");
+            return "true".equals(SpringContextUtil.getBean(Constant.class).getPurchaseStatus());
         }
         return true;
     }
@@ -185,16 +205,11 @@ public class BookOrderServiceImpl implements BookOrderService {
     private final int CLASS_START_INDEX = 15;
 
     @Override
+    @SneakyThrows(IOException.class)
     public Workbook exportAllStudentRecord(DeclareBookExportParam param) {
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/orderDetail.xlsx");
-        Workbook workbook;
-        try {
-            workbook = new XSSFWorkbook(inputStream);
-            inputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        Workbook workbook = new XSSFWorkbook(inputStream);
+        inputStream.close();
         Sheet sheet = workbook.getSheetAt(0);
         CellStyle cellStyle = getBaseCellStyle(workbook);
         sheet.getRow(0).getCell(0).setCellValue(TimeUtil.getSemesterName(param.getSemesterId()) + "教材订购详情");
@@ -241,15 +256,10 @@ public class BookOrderServiceImpl implements BookOrderService {
                 .filter(v -> v.getClassName() != null)
                 .collect(Collectors.groupingBy(BookOrderVo::getBookId, Collectors.groupingBy(BookOrderVo::getClassName, Collectors.counting())));
         Map<String, List<CourseGroup>> courseMap = courseGroupList.parallelStream().collect(Collectors.groupingBy(CourseGroup::getCouId));
-        List<Integer> idList = courseGroupList.parallelStream().flatMap(v -> v.getTextBook().stream()).collect(Collectors.toList());
-        if (idList.isEmpty()) {
+        List<Book> allBookList = bookService.getTextBookByCourseList(courseIdSet);
+        if (allBookList.isEmpty()) {
             return new String[0][0];
         }
-        ConditionUtil.notEmpty(idList).orElseThrow(() -> new OperationException(ErrorEnum.NO_DATA));
-//        主键为书籍id，便于搜索
-        Map<Integer, Book> bookMap = bookMapper.selectBookList(idList)
-                .parallelStream().collect(Collectors.toMap(Book::getId, v -> v));
-
         int length = CLASS_START_INDEX + this.classIndex.size();
         String[][] data = new String[courseMap.size()][];
         int i = 0;
@@ -270,8 +280,8 @@ public class BookOrderServiceImpl implements BookOrderService {
             strings[1] = courseGroup.getCourseName();
             strings[2] = CourseNature.getContent(courseGroup.getCourseNature()).getContent();
             strings[3] = classStrBuilder.toStringAndReset();
-            List<Integer> bookIdList = courseGroupListItem.get(0).getTextBook();
-            if (!bookIdList.isEmpty()) {
+            List<Book> bookList = allBookList.stream().filter(v -> courseId.equals(v.getCourseId())).collect(Collectors.toList());
+            if (!bookList.isEmpty()) {
                 StrBuilder isbn = new StrBuilder();
                 StrBuilder name = new StrBuilder();
                 StrBuilder price = new StrBuilder();
@@ -281,8 +291,7 @@ public class BookOrderServiceImpl implements BookOrderService {
                 StrBuilder edition = new StrBuilder();
                 StrBuilder award = new StrBuilder();
                 StrBuilder forTeacher = new StrBuilder();
-                for (int bookId : bookIdList) {
-                    Book book = bookMap.get(bookId);
+                for (Book book : bookList) {
                     isbn.append(book.getIsbn()).append("\n");
                     name.append(book.getName()).append("\n");
                     price.append(book.getPrice()).append("\n");
@@ -293,7 +302,7 @@ public class BookOrderServiceImpl implements BookOrderService {
                     award.append(book.getAward()).append("\n");
                     forTeacher.append(book.getForTeacher()).append("\n");
                     if (!classIndex.isEmpty()) {
-                        Map<String, Long> classToNum = bookIdToClass.get(bookId);
+                        Map<String, Long> classToNum = bookIdToClass.get(book.getId());
                         if (classToNum != null && !classToNum.isEmpty()) {
                             classToNum.forEach((className, num) -> strings[classIndex.get(className)] = StrBuilder.create(strings[classIndex.get(className)]).append(num).append("\n").toStringAndReset());
                         }
@@ -310,7 +319,7 @@ public class BookOrderServiceImpl implements BookOrderService {
                 strings[12] = teacherStrBuilder.toStringAndReset();
                 strings[13] = forTeacher.toStringAndReset();
             }
-            strings[14] = bookIdList.isEmpty() ? "否" : "是";
+            strings[14] = bookList.isEmpty() ? "否" : "是";
             data[i++] = strings;
         }
         return data;

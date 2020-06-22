@@ -28,7 +28,9 @@
     where classname = #{classname,jdbcType=CHAR}
   </update>
   <update id="updateStudentNum">
-    update classes set student_num=(SELECT count(id) from student where class_name=#{className}) where classname=#{className};
+    update classes
+    set student_num=(SELECT count(id) from student where class_name = #{className})
+    where classname = #{className};
   </update>
   <select id="select" resultMap="BaseResultMap">
     select classes.*
@@ -63,12 +65,6 @@
       #{item}
     </foreach>
     )
-  </select>
-  <select id="getCurriculum" resultMap="CourseMap">
-    SELECT course_name, text_book
-    from course_group_view
-    where class_name LIKE CONCAT('%', #{className}, '%')
-      and semester_id = #{semesterId}
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap">
     select *

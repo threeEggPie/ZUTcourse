@@ -4,6 +4,7 @@ import lombok.Data;
 import xyz.kingsword.course.pojo.Book;
 import xyz.kingsword.course.util.TimeUtil;
 
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -18,7 +19,9 @@ public class SortCourseVo {
 
     private String courseName;
 
-    private String nature;
+    private int nature;
+
+    private int type;
 
     private int timeAll;
 
@@ -43,10 +46,12 @@ public class SortCourseVo {
 
     private int referenceBookNum = 0;
 
-    private String textBookString;
-    private String referenceBookString;
-
     private List<Book> bookList;
+
+    public List<Book> getReferenceBookList() {
+        return referenceBookList == null ? Collections.emptyList() : referenceBookList;
+    }
+
     private List<Book> referenceBookList;
 
     private List<String> courseGroup;

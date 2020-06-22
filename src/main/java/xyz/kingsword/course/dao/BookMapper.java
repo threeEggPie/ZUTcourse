@@ -2,7 +2,6 @@ package xyz.kingsword.course.dao;
 
 
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 import xyz.kingsword.course.pojo.Book;
 
 import java.util.Collection;
@@ -18,6 +17,8 @@ public interface BookMapper {
 
     List<Book> selectBookList(Collection<Integer> idList);
 
+    List<Book> selectBookListByCourse(String courseId);
+
     int forTeacherIncrease(Collection<Integer> idList);
 
     int cancelTeacherPurchase(int orderId);
@@ -26,6 +27,7 @@ public interface BookMapper {
 
     List<Book> selectAll();
 
+    List<Book> getTextBookByCourseList(Collection<String> courseList);
 
 
 }

@@ -17,6 +17,16 @@ public class SortCourseSearchParam {
 
     private String courseName;
 
+    /**
+     * 课程类别
+     */
+    private Integer type;
+    /**
+     * 课程性质
+     */
+    private Integer nature;
+
+    @Deprecated
     private Integer classroomId;
     /**
      * 学期id
@@ -35,4 +45,11 @@ public class SortCourseSearchParam {
     @ApiModelProperty(value = "排课标志，已分配为1，未分配-1，全部为0", allowableValues = "range[-1,0,1]", required = true)
     @Builder.Default
     private int sortCourseFlag = 0;
+
+    /**
+     * 是否申报教材
+     */
+    @ApiModelProperty(value = "是否申报教材，全部可为null")
+    @Builder.Default
+    private Boolean declareStatus = false;
 }

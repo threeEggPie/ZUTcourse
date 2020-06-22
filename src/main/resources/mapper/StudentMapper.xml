@@ -40,7 +40,7 @@
     select student.id,student.`name`,student.class_name from student,classes,speciality
     <where>
       <if test="id !=null and id !=''">
-        id=#{id}
+        student.id=#{id}
       </if>
       <if test="name !=null and name !=''">
         and name like concat('%', #{name,jdbcType=VARCHAR}, '%')
@@ -69,7 +69,7 @@
       and classes.speciality=speciality.id
       and student.class_name=classes.classname
     </where>
-    order by id
+    order by student.id
   </select>
   <select id="selectById" resultMap="BaseResultMap">
     select id, `name`, class_name

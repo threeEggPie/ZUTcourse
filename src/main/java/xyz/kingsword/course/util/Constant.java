@@ -1,6 +1,5 @@
 package xyz.kingsword.course.util;
 
-import com.github.pagehelper.autoconfigure.PageHelperProperties;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -15,8 +15,6 @@
     <result column="coach_teacher" jdbcType="CHAR" property="coachTeacher"/>
     <result column="research_room" jdbcType="CHAR" property="researchRoom"/>
     <result column="assessment_way" jdbcType="INTEGER" property="assessmentWay"/>
-    <result column="text_book" jdbcType="CHAR" property="textBook"/>
-    <result column="reference_book" jdbcType="CHAR" property="referenceBook"/>
     <result column="book_manager" jdbcType="CHAR" property="bookManager"/>
     <result column="homework_proportion" jdbcType="INTEGER" property="homeworkProportion"/>
     <result column="test_proportion" jdbcType="DOUBLE" property="testProportion"/>
@@ -55,7 +53,7 @@
     insert course (id, `name`, teacher_in_charge,
                    type, core, nature, credit, coach, coach_teacher,
                    colleges_or_departments, examination_way, research_room,
-                   assessment_way, text_book, reference_book,
+                   assessment_way,
                    homework_proportion, test_proportion, lab_proportion,
                    attendance_proportion, performance_proportion,
                    paper_proportion, other_proportion, exam_proportion,
@@ -66,7 +64,7 @@
             #{type,jdbcType=INTEGER}, #{core,jdbcType=CHAR}, #{nature,jdbcType=INTEGER}, #{credit,jdbcType=INTEGER},
             #{coach,jdbcType=CHAR}, #{coachTeacher,jdbcType=CHAR},
             #{collegesOrDepartments,jdbcType=CHAR}, #{examinationWay,jdbcType=CHAR}, #{researchRoom,jdbcType=CHAR},
-            #{assessmentWay,jdbcType=INTEGER}, #{textBook,jdbcType=CHAR}, #{referenceBook,jdbcType=CHAR},
+            #{assessmentWay,jdbcType=INTEGER},
             #{homeworkProportion,jdbcType=INTEGER}, #{testProportion,jdbcType=DOUBLE}, #{labProportion,jdbcType=DOUBLE},
             #{attendanceProportion,jdbcType=DOUBLE}, #{performanceProportion,jdbcType=DOUBLE},
             #{paperProportion,jdbcType=REAL}, #{otherProportion,jdbcType=DOUBLE}, #{examProportion,jdbcType=DOUBLE},

@@ -1,7 +1,6 @@
 package xyz.kingsword.course.dao;
 
 import xyz.kingsword.course.pojo.Classes;
-import xyz.kingsword.course.pojo.Course;
 import xyz.kingsword.course.pojo.param.ClassesSelectParam;
 
 import java.util.Collection;
@@ -20,8 +19,6 @@ public interface ClassesMapper {
     List<Classes> findByName(List<String> nameList);
 
     int updateByPrimaryKey(Classes record);
-
-    List<Course> getCurriculum(String className, String semesterId);
 
     List<Classes> select(ClassesSelectParam param);
 

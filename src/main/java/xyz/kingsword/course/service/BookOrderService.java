@@ -18,6 +18,8 @@ public interface BookOrderService {
 
     void cancelPurchase(int id);
 
+    void deleteByBook(List<Integer> bookIdList);
+
     void insertByGrade(Collection<Integer> gradeList, String semesterId);
 
     List<BookOrderVo> select(BookOrderSelectParam param);
