@@ -24,9 +24,6 @@ public class CourseSelectParam {
 
     private String teacherInCharge;
 
-    @ApiModelProperty(value = "是否报了教材，全部可为null")
-    private Boolean declareStatus;
-
     @Builder.Default
     private int pageNum = 1;
     @Builder.Default
