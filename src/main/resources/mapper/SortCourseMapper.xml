@@ -50,6 +50,12 @@
       <if test="courseName !=null and courseName!=''">
         and course_name like concat('%',#{courseName},'%')
       </if>
+      <if test="declareStatus !=null and declareStatus==true">
+        and get_text_book_num(cou_id)>0
+      </if>
+      <if test="declareStatus !=null and declareStatus==false">
+        and get_text_book_num(cou_id)=0
+      </if>
       <if test="type !=null">
         and type =#{type}
       </if>

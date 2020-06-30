@@ -93,6 +93,7 @@
     select *
     from book
     where book.course_id = #{courseId}
+      and status = 0
   </select>
   <select id="getTextBookByCourseList" resultMap="BaseResultMap">
     select * from book where course_id in (

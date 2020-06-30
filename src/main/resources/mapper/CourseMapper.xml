@@ -27,6 +27,7 @@
     <result column="time_week" jdbcType="INTEGER" property="timeWeek"/>
     <result column="theory_week" jdbcType="INTEGER" property="theoryWeek"/>
     <result column="week_num" jdbcType="INTEGER" property="weekNum"/>
+    <result column="text_book" jdbcType="CHAR" property="textBook"/>
     <result column="time_theory" jdbcType="INTEGER" property="timeTheory"/>
     <result column="time_practical" jdbcType="INTEGER" property="timePractical"/>
     <result column="time_computer" jdbcType="INTEGER" property="timeComputer"/>
@@ -76,7 +77,7 @@
     insert into course (id, `name`, teacher_in_charge,
     type, core, nature, credit, coach, coach_teacher,
     colleges_or_departments, examination_way, research_room,
-    assessment_way, text_book, reference_book,
+    assessment_way,
     homework_proportion, test_proportion, lab_proportion,
     attendance_proportion, performance_proportion,
     paper_proportion, other_proportion, exam_proportion,
@@ -90,7 +91,7 @@
       #{item.coach,jdbcType=CHAR}, #{item.coachTeacher,jdbcType=CHAR},
       #{item.collegesOrDepartments,jdbcType=CHAR}, #{item.examinationWay,jdbcType=CHAR},
       #{item.researchRoom,jdbcType=CHAR},
-      #{item.assessmentWay,jdbcType=INTEGER}, #{item.textBook,jdbcType=CHAR}, #{item.referenceBook,jdbcType=CHAR},
+      #{item.assessmentWay,jdbcType=INTEGER},
       #{item.homeworkProportion,jdbcType=INTEGER}, #{item.testProportion,jdbcType=DOUBLE},
       #{item.labProportion,jdbcType=DOUBLE},
       #{item.attendanceProportion,jdbcType=DOUBLE}, #{item.performanceProportion,jdbcType=DOUBLE},
@@ -222,7 +223,7 @@
     colleges_or_departments, examination_way, research_room, assessment_way, text_book,
     reference_book, homework_proportion, test_proportion, lab_proportion, attendance_proportion,
     performance_proportion, paper_proportion, other_proportion, exam_proportion, time_week,
-    week_num, time_theory, time_practical, time_computer, time_lab, time_homework, time_all,
+    week_num, time_theory, time_practical, time_computer, time_lab, time_homework, time_all,text_book,
     theory_week, `status`, book_manager from
     course
     <where>
@@ -264,11 +265,6 @@
   </select>
 
 
-  <select id="selectCourseByClassName" resultMap="BaseResultMap">
-    select *
-    from course
-    where id in (select cou_id from sortcourse where class like "%"#{className}"%" and semester_id=#{semester})
-  </select>
   <select id="courseRepeated" resultType="java.lang.Integer">
     select count(id)
     from course

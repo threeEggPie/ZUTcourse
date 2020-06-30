@@ -4,6 +4,7 @@ package xyz.kingsword.course.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
+import xyz.kingsword.course.exception.BaseException;
 import xyz.kingsword.course.vo.*;
 import xyz.kingsword.course.dao.CourseGroupMapper;
 import xyz.kingsword.course.dao.UserMapper;
@@ -49,7 +50,8 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public int resetPassword(@NonNull String password, @NonNull User user) {
+    public int resetPassword(String password, @NonNull User user) {
+        ConditionUtil.validateTrue(password != null && password.length() > 0).orElseThrow(() -> new BaseException("密码不合规范"));
         password = UserUtil.encrypt(password);
         return isStudent(user) ? userMapper.resetPasswordStudent(user.getUsername(), password) : userMapper.resetPasswordTeacher(user.getUsername(), password);
     }

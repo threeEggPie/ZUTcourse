@@ -3,6 +3,8 @@ package xyz.kingsword.course.service.impl;
 import cn.hutool.cache.Cache;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.github.pagehelper.PageInfo;
+import com.github.pagehelper.page.PageMethod;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,12 +17,14 @@ import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.exception.BaseException;
 import xyz.kingsword.course.exception.DataException;
 import xyz.kingsword.course.pojo.*;
+import xyz.kingsword.course.pojo.param.SelectBookDeclareParam;
 import xyz.kingsword.course.service.BookOrderService;
 import xyz.kingsword.course.service.BookService;
 import xyz.kingsword.course.util.ConditionUtil;
 import xyz.kingsword.course.util.SpringContextUtil;
 import xyz.kingsword.course.util.TimeUtil;
 import xyz.kingsword.course.util.UserUtil;
+import xyz.kingsword.course.vo.BookDeclareVo;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -42,13 +46,6 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<Book> getTextBook(String courseId) {
         return bookMapper.selectBookListByCourse(courseId);
-//        Optional<Course> optional = courseMapper.getByPrimaryKey(courseId);
-//        if (optional.isPresent()) {
-//            Course course = optional.get();
-//            String bookListJson = course.getTextBook();
-//            return getByBookIdList(bookListJson);
-//        }
-//        return new ArrayList<>();
     }
 
     @Override
@@ -91,6 +88,41 @@ public class BookServiceImpl implements BookService {
             bookList.addAll(bookListDb);
         }
         return bookList;
+    }
+
+    /**
+     * 筛选教材申报情况
+     */
+    @Override
+    public PageInfo<BookDeclareVo> selectBookDeclare(SelectBookDeclareParam param) {
+        CourseGroupMapper courseGroupMapper = SpringContextUtil.getBean(CourseGroupMapper.class);
+        PageInfo pageInfo = PageMethod.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> courseGroupMapper.selectBookDeclareStatus(param));
+        List<CourseGroup> courseGroupList = pageInfo.getList();
+        List<String> courseIdList = courseGroupList.stream().map(CourseGroup::getCouId).collect(Collectors.toList());
+
+        Map<String, List<Book>> bookMap = getBookMap(courseIdList);
+        Map<String, List<CourseGroup>> courseGroupTeacherMap = courseGroupMapper.getCourseGroupTeacher(courseIdList, param.getSemesterId())
+                .stream().collect(Collectors.groupingBy(CourseGroup::getCouId));
+
+        String semesterId = param.getSemesterId();
+        String semesterName = TimeUtil.getSemesterName(semesterId);
+        List<BookDeclareVo> bookDeclareVoLit = new ArrayList<>(courseGroupList.size());
+        for (CourseGroup courseGroup : courseGroupList) {
+            String courseId = courseGroup.getCouId();
+            BookDeclareVo bookDeclareVo = new BookDeclareVo();
+            bookDeclareVo.setCourseId(courseGroup.getCouId());
+            bookDeclareVo.setCourseName(courseGroup.getCourseName());
+            bookDeclareVo.setNature(courseGroup.getCourseNature());
+            bookDeclareVo.setSemesterId(semesterId);
+            bookDeclareVo.setSemesterName(semesterName);
+            bookDeclareVo.setBookList(bookMap.getOrDefault(courseId, Collections.emptyList()));
+            List<String> teacherList = courseGroupTeacherMap.containsKey(courseId) ? courseGroupTeacherMap.get(courseId).stream().map(CourseGroup::getTeacherName).distinct().collect(Collectors.toList()) : Collections.emptyList();
+            bookDeclareVo.setCourseGroup(teacherList);
+
+            bookDeclareVoLit.add(bookDeclareVo);
+        }
+        pageInfo.setList(bookDeclareVoLit);
+        return pageInfo;
     }
 
 
@@ -157,6 +189,14 @@ public class BookServiceImpl implements BookService {
         bookMapper.delete(bookIdList);
         bookIdList.forEach(v -> bookCache.remove(v));
         bookOrderService.deleteByBook(bookIdList);
+    }
+
+    private Map<String, List<Book>> getBookMap(List<String> courseIdList) {
+        if (courseIdList == null || courseIdList.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return bookMapper.getTextBookByCourseList(courseIdList).stream().collect(Collectors.groupingBy(Book::getCourseId));
     }
 
 

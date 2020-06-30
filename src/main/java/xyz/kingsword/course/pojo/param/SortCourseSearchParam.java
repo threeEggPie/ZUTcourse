@@ -50,6 +50,5 @@ public class SortCourseSearchParam {
      * 是否申报教材
      */
     @ApiModelProperty(value = "是否申报教材，全部可为null")
-    @Builder.Default
-    private Boolean declareStatus = false;
+    private Boolean declareStatus;
 }

@@ -1,8 +1,8 @@
 package xyz.kingsword.course.service.impl;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.github.pagehelper.page.PageMethod;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
@@ -11,7 +11,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import xyz.kingsword.course.dao.CourseGroupMapper;
 import xyz.kingsword.course.dao.CourseMapper;
 import xyz.kingsword.course.enmu.AssessmentEnum;
 import xyz.kingsword.course.enmu.CourseNature;
@@ -48,8 +47,6 @@ public class CourseServiceImpl implements CourseService {
     private BookService bookService;
     @Resource
     private TeacherService teacherService;
-    @Resource
-    private CourseGroupMapper courseGroupMapper;
 
     @Override
     public void insert(Course course) {
@@ -60,7 +57,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public PageInfo<CourseVo> select(CourseSelectParam param) {
-        PageInfo<Course> pageInfo = PageHelper.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> courseMapper.select(param));
+        PageInfo<Course> pageInfo = PageMethod.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> courseMapper.select(param));
         List<Course> courseList = pageInfo.getList();
         PageInfo<CourseVo> courseVoPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, courseVoPageInfo);

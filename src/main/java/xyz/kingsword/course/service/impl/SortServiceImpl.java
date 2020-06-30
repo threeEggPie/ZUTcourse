@@ -7,6 +7,7 @@ import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.exceptions.POIException;
 import com.alibaba.fastjson.JSON;
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.page.PageMethod;
 import lombok.SneakyThrows;
@@ -46,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -75,8 +77,7 @@ public class SortServiceImpl implements SortCourseService {
 
     @Override
     public void setSortCourse(SortCourseUpdateParam sortCourseUpdateParam) {
-        int flag = sortcourseMapper.setSortCourse(sortCourseUpdateParam);
-        log.debug("排课更新数据：{}", flag);
+        sortcourseMapper.setSortCourse(sortCourseUpdateParam);
     }
 
     @Override
@@ -93,9 +94,7 @@ public class SortServiceImpl implements SortCourseService {
 
     @Override
     public List<SortCourseVo> getCourseHistory(String courseId) {
-        List<SortCourseVo> sortCourseVoList = sortcourseMapper.getCourseHistory(courseId);
-//        renderSortCourseVo(sortCourseVoList);
-        return sortCourseVoList;
+        return sortcourseMapper.getCourseHistory(courseId);
     }
 
     @Override
@@ -105,7 +104,6 @@ public class SortServiceImpl implements SortCourseService {
             Map<String, Course> courseMap = courseMapper.getByIdList(sortCourseVoList.stream().map(SortCourseVo::getCourseId).collect(Collectors.toList())).stream().collect(Collectors.toMap(Course::getId, v -> v));
             sortCourseVoList.forEach(v -> v.setTimeAll(courseMap.get(v.getCourseId()).getTimeAll()));
         }
-//        renderSortCourseVo(sortCourseVoList);
         return sortCourseVoList;
     }
 
@@ -114,6 +112,7 @@ public class SortServiceImpl implements SortCourseService {
         PageInfo<SortCourseVo> pageInfo = PageMethod.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> sortcourseMapper.search(param));
         List<SortCourseVo> sortCourseVoList = pageInfo.getList();
         renderSortCourseVo(sortCourseVoList);
+
 //      如果为true就删掉bookList为空的数据
         if (param.getDeclareStatus() != null) {
             sortCourseVoList.removeIf(v -> v.getBookList().isEmpty() == param.getDeclareStatus());
@@ -195,7 +194,7 @@ public class SortServiceImpl implements SortCourseService {
 
 
     /**
-     * 预排课数据导入
+     * 软件学院排课数据导入
      * 模板：preSortCourse.xls
      *
      * @param inputStream excelInputStream
@@ -203,7 +202,7 @@ public class SortServiceImpl implements SortCourseService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public List<SortCourse> excelImport(InputStream inputStream) {
+    public void excelImport(InputStream inputStream) {
         Workbook workbook;
         try {
             workbook = new HSSFWorkbook(inputStream);
@@ -252,15 +251,16 @@ public class SortServiceImpl implements SortCourseService {
         }
         sortcourseMapper.insert(sortCourseList);
         autoMerge(sheet, sortCourseList);
-        return sortCourseList;
     }
 
     /**
-     * 导入之前学期，排好课的excel
+     * 导入外院系排课表
      *
      * @param inputStream inputStream
      */
-    public void postExcelImport(InputStream inputStream) {
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void otherCourseImport(InputStream inputStream) {
         Workbook workbook;
         try {
             workbook = new HSSFWorkbook(inputStream);
@@ -279,7 +279,7 @@ public class SortServiceImpl implements SortCourseService {
         List<Teacher> teacherList = new ArrayList<>(20);
         for (int i = 6; i < sheet.getLastRowNum() - 1; i++) {
             Row row = sheet.getRow(i);
-            String name = row.getCell(12).getStringCellValue();
+            String name = row.getCell(13).getStringCellValue();
             if (!teacherMap.containsKey(name)) {
                 Teacher teacher = new Teacher();
                 String id = PinYinTool.getInstance().toPinYin(name);
@@ -294,11 +294,15 @@ public class SortServiceImpl implements SortCourseService {
             Row row = sheet.getRow(i);
             SortCourse sortCourse = new SortCourse();
             sortCourse.setCouId(row.getCell(1).getStringCellValue());
-            sortCourse.setClassName(row.getCell(3).getStringCellValue().trim());
-            int studentNum = row.getCell(4).getStringCellValue().isEmpty() ? 0 : Integer.parseInt(row.getCell(4).getStringCellValue());
+            String className = row.getCell(4).getStringCellValue().trim();
+            String patternBracket = "\\(.*?\\)";
+            className = Pattern.compile(patternBracket).matcher(className).replaceAll(StrUtil.EMPTY);
+            sortCourse.setClassName(className);
+
+            int studentNum = (int) row.getCell(5).getNumericCellValue();
             sortCourse.setStudentNum(studentNum);
             sortCourse.setSemesterId(semesterId);
-            String teacherName = row.getCell(12).getStringCellValue();
+            String teacherName = row.getCell(13).getStringCellValue();
             if (teacherName == null || teacherName.isEmpty()) {
                 sortCourse.setTeaId("0");
             } else {
@@ -307,7 +311,6 @@ public class SortServiceImpl implements SortCourseService {
             sortCourseList.add(sortCourse);
         }
         sortcourseMapper.insert(sortCourseList);
-        autoMerge(sheet, sortCourseList);
     }
 
     /**
@@ -344,7 +347,6 @@ public class SortServiceImpl implements SortCourseService {
             result.add(sortCourse);
             deletedIdList.addAll(mergedList);
         }
-
         sortcourseMapper.insert(result);
         sortcourseMapper.mergeCourseHead(deletedIdList);
     }
@@ -477,6 +479,17 @@ public class SortServiceImpl implements SortCourseService {
                 }
             }
         }
+    }
+
+    @Deprecated
+    private <T> PageInfo<T> manualPaging(List<T> list, int pageNum, int pageSize) {
+        Page<T> page = new Page<T>(pageNum, pageSize);
+        int total = list.size();
+        page.setTotal(total);
+        int startIndex = (pageNum - 1) * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, total);
+        page.addAll(list.subList(startIndex, endIndex));
+        return new PageInfo<>(page);
     }
 
 }

@@ -8,6 +8,7 @@ import xyz.kingsword.course.annocations.Role;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.pojo.Book;
 import xyz.kingsword.course.pojo.Result;
+import xyz.kingsword.course.pojo.param.SelectBookDeclareParam;
 import xyz.kingsword.course.service.BookService;
 import xyz.kingsword.course.util.BookUtil;
 import xyz.kingsword.course.util.Constant;
@@ -101,5 +102,12 @@ public class BookController {
     @Role(RoleEnum.ACADEMIC_MANAGER)
     public Result<Object> getPurchaseStatus() {
         return new Result<>(Convert.toBool(constant.getPurchaseStatus()));
+    }
+
+    @RequestMapping(value = "/selectBookDeclare", method = RequestMethod.POST)
+    @ApiOperation("教材申报状态查询")
+    @Role(RoleEnum.ACADEMIC_MANAGER)
+    public Result<Object> selectBookDeclare(@RequestBody SelectBookDeclareParam param) {
+        return new Result<>(bookService.selectBookDeclare(param));
     }
 }

@@ -40,12 +40,4 @@ public interface CourseMapper {
     int courseRepeated(String courseId);
 
     void resetBookManager(String courseId);
-
-    /**
-     * 根据班级和学期获取该班级的所有课程
-     *
-     * @param className className
-     * @return List<Course>
-     */
-    List<Course> selectCourseByClassName(@Param("className") String className, @Param("semester") String semester);
 }

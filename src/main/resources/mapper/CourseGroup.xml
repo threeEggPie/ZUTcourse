@@ -52,7 +52,7 @@
       AND semester_id = #{semesterId}
     group by tea_id
   </select>
-  <select id="selectDistinct" resultMap="BaseResultMap">
+  <select id="selectTeaIdDistinct" resultMap="BaseResultMap">
     select * from course_group_view
     <where>
       <if test="courseId !=null and courseId !=''">
@@ -74,11 +74,40 @@
     group by tea_id
     order by semester_id
   </select>
-  <select id="geyByClasses" resultMap="BaseResultMap">
-    select cou_id, text_book, class_name
-    from course_group_view
-    where course_nature = 2
-      and class_name LIKE CONCAT('%', #{className}, '%')
+  <select id="selectBookDeclareStatus" resultMap="BaseResultMap">
+    select * from course_group_view
+    <where>
+      <if test="courseName !=null and courseName !=''">
+        course_name=#{courseName}
+      </if>
+      <if test="declareStatus == true">
+        and get_text_book_num(cou_id) >0
+      </if>
+      <if test="declareStatus == false">
+        and get_text_book_num(cou_id) =0
+      </if>
+      <if test="semesterId !=null and semesterId !=''">
+        and semester_id=#{semesterId}
+      </if>
+      <if test="nature !=null and nature >0">
+        and course_nature=#{nature}
+      </if>
+      <if test="type !=null and type >-1">
+        and type=#{type}
+      </if>
+    </where>
     group by cou_id
+    order by semester_id,cou_id
+  </select>
+  <select id="getCourseGroupTeacher" resultMap="BaseResultMap">
+    select tea_name,cou_id from course_group_view where semester_id=#{semesterId}
+    <if test="null != collection and collection.size > 0">
+      and cou_id in (
+      <foreach collection="collection" item="item" index="index" separator=",">
+        #{item}
+      </foreach>
+      )
+    </if>
+
   </select>
 </mapper>

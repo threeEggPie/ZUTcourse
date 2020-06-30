@@ -24,6 +24,8 @@ public class CourseSelectParam {
 
     private String teacherInCharge;
 
+    private Boolean declareStatus;
+
     @Builder.Default
     private int pageNum = 1;
     @Builder.Default

@@ -152,7 +152,7 @@ public class BookOrderServiceImpl implements BookOrderService {
      */
     @Override
     public List<CourseGroupOrderVo> courseGroupOrder(String courseId, String semesterId) {
-        List<CourseGroup> courseGroupList = courseGroupMapper.selectDistinct(CourseGroupSelectParam.builder().semesterId(semesterId).courseId(courseId).build());
+        List<CourseGroup> courseGroupList = courseGroupMapper.selectTeaIdDistinct(CourseGroupSelectParam.builder().semesterId(semesterId).courseId(courseId).build());
         if (courseGroupList.isEmpty()) {
             return Collections.emptyList();
         }

@@ -3,6 +3,7 @@ package xyz.kingsword.course.util;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import xyz.kingsword.course.pojo.Book;
 
@@ -32,7 +33,7 @@ public class BookUtil {
         HttpRequest httpRequest = HttpUtil.createGet(URL + isbn).header("Authorization", AUTHORIZATION);
         HttpResponse httpResponse = httpRequest.execute();
         String jsonString = httpResponse.body();
-        JSONObject jsonObject = JSONObject.parseObject(jsonString);
+        JSONObject jsonObject = JSON.parseObject(jsonString);
         int status = jsonObject.getInteger("status");
         if (status != 0) {
             return book;
@@ -40,7 +41,6 @@ public class BookUtil {
         JSONObject bookObject = jsonObject.getJSONObject("result");
         book = new Book();
         book.setName(bookObject.getString("title"));
-        book.setImgUrl("pic");
         book.setAuthor(bookObject.getString("author"));
         book.setPublish(bookObject.getString("publisher"));
         book.setNote(bookObject.getString("summary"));
