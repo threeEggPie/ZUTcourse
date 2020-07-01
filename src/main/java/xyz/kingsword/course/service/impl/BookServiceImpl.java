@@ -57,13 +57,9 @@ public class BookServiceImpl implements BookService {
     }
 
 
-    private List<Integer> getTextBookId(String courseId) {
-        return getTextBook(courseId).stream().map(Book::getId).collect(Collectors.toList());
-    }
-
     @Override
     public List<Book> getReferenceBook(String courseId) {
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
     /**
@@ -186,9 +182,11 @@ public class BookServiceImpl implements BookService {
     @Override
     public void delete(@NonNull List<Integer> bookIdList, @NonNull String courseId) {
         validateAuth(courseId);
+        String semesterId = TimeUtil.getNextSemester().getId();
+        int count = bookOrderService.selectByBookIdSemester(bookIdList, semesterId);
+        ConditionUtil.validateTrue(count == 0).orElseThrow(() -> new BaseException("教材已被学生订购，不能删除"));
         bookMapper.delete(bookIdList);
         bookIdList.forEach(v -> bookCache.remove(v));
-        bookOrderService.deleteByBook(bookIdList);
     }
 
     private Map<String, List<Book>> getBookMap(List<String> courseIdList) {

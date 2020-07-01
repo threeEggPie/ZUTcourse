@@ -136,19 +136,13 @@
     GROUP BY semester_id, discount
     ORDER BY semester_id DESC
   </select>
-  <select id="selectAll" resultMap="BaseResultMap">
-    select id, discount
-    from book_order
-    limit 700;
-  </select>
-
-  <update id="test">
-    <foreach collection="list" item="item" index="index" open="" close="" separator=";">
-      update book_order
-      <set>
-        discount=${item.discount}
-      </set>
-      where id = ${item.id}
+  <select id="selectByBookIdSemester" resultType="java.lang.Integer">
+    select count(book_id) from book_order_view where semester_id=#{semesterId}
+    and book_id in (
+    <foreach collection="list" item="item" separator=",">
+      #{item}
     </foreach>
-  </update>
+    )
+
+  </select>
 </mapper>

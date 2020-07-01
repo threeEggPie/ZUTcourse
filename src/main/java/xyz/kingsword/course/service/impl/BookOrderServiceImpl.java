@@ -96,6 +96,14 @@ public class BookOrderServiceImpl implements BookOrderService {
         bookMapper.delete(bookIdList);
     }
 
+    @Override
+    public int selectByBookIdSemester(List<Integer> bookIdList, String semesterId) {
+        if (CollUtil.isNotEmpty(bookIdList)) {
+            return bookOrderMapper.selectByBookIdSemester(bookIdList, semesterId);
+        }
+        return 0;
+    }
+
     /**
      * 根据年级，默认订购必修教材
      *

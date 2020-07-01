@@ -101,7 +101,7 @@
     <dependency>
       <groupId>cn.hutool</groupId>
       <artifactId>hutool-all</artifactId>
-      <version>5.3.5</version>
+      <version>5.3.6</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
     <dependency>
@@ -223,22 +223,91 @@
     <!-- https://mvnrepository.com/artifact/com.belerweb/pinyin4j -->
   </dependencies>
 
+
   <build>
+    <finalName>course-${project.version}</finalName>
+    <resources>
+      <resource>
+        <!--指定mapping下的所有xml文件打包在jar中-->
+        <targetPath>${project.build.directory}/classes</targetPath>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>mapper/*.xml</include>
+          <include>templates/*</include>
+        </includes>
+
+      </resource>
+      <resource>
+        <!--resources下一级的所有.xml .properties文件复制到config目录下-->
+        <targetPath>${project.build.directory}/config</targetPath>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**.xml</include>
+          <include>**.properties</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <classesDirectory>target/classes/</classesDirectory>
+          <archive>
+            <!--生成的jar中，不要包含pom.xml和pom.properties这两个文件-->
+            <addMavenDescriptor>false</addMavenDescriptor>
+            <manifest>
+              <mainClass>xyz.kingsword.course.CourseApplication</mainClass>
+              <!-- 打包时 MANIFEST.MF文件不记录的时间戳版本 -->
+              <useUniqueVersions>false</useUniqueVersions>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>lib/</classpathPrefix>
+            </manifest>
+            <manifestEntries>
+              <!--jar中的MANIFEST.MF文件ClassPath需要添加config目录才能读取到配置文件-->
+              <Class-Path>config/ .</Class-Path>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <!--maven-dependency插件，将项目所有依赖包放到lib目录下-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <type>jar</type>
+              <includeTypes>jar</includeTypes>
+              <outputDirectory>
+                ${project.build.directory}/lib
+              </outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
+        <artifactId>maven-resources-plugin</artifactId>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-          <encoding>UTF-8</encoding>
+          <nonFilteredFileExtensions>
+            <nonFilteredFileExtension>xls</nonFilteredFileExtension>
+            <nonFilteredFileExtension>xlsx</nonFilteredFileExtension>
+            <nonFilteredFileExtension>html</nonFilteredFileExtension>
+            <nonFilteredFileExtension>docx</nonFilteredFileExtension>
+            <nonFilteredFileExtension>doc</nonFilteredFileExtension>
+            <nonFilteredFileExtension>txt</nonFilteredFileExtension>
+          </nonFilteredFileExtensions>
         </configuration>
       </plugin>
+
     </plugins>
   </build>
 </project>

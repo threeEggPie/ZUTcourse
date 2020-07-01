@@ -31,7 +31,5 @@ public interface BookOrderMapper {
 
     void setSemesterDiscount(@Param("semester") String semester, @Param("discount") Double discount);
 
-    int test(List<BookOrder> bookOrderList);
-
-    List<BookOrder> selectAll();
+    int selectByBookIdSemester(@Param("list") List<Integer> idList, @Param("semesterId") String semesterId);
 }
