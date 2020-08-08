@@ -93,7 +93,7 @@
            class
     from sortcourse_view
     where tea_id = #{teacherId}
-      and semester_id &lt; (select max(id) from semester)
+      and semester_id &lt;= (select max(id) from semester)
   </select>
 
   <select id="getCourseHistory" resultMap="SortCourseViewMap">

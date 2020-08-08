@@ -78,7 +78,7 @@
     select * from course_group_view
     <where>
       <if test="courseName !=null and courseName !=''">
-        course_name=#{courseName}
+        course_name LIKE CONCAT('%',#{courseName},'%')
       </if>
       <if test="declareStatus == true">
         and get_text_book_num(cou_id) >0

@@ -31,7 +31,7 @@ public interface SortCourseService {
 
     void restoreCourseHead(List<Integer> id);
 
-    void excelImport(InputStream inputStream);
+    void excelImport(InputStream file);
 
     Workbook excelExport(String semesterId);
 
