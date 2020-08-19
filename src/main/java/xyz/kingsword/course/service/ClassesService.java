@@ -6,6 +6,7 @@ import xyz.kingsword.course.pojo.Classes;
 import xyz.kingsword.course.pojo.param.ClassesSelectParam;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ClassesService {
 
@@ -16,5 +17,7 @@ public interface ClassesService {
     PageInfo<Classes> select(ClassesSelectParam param);
 
     List<Classes> getByName(List<String> nameList);
+
+    Map<String, Integer> getClassStudentNum();
 
 }

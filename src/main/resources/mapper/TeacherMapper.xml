@@ -18,7 +18,7 @@
     <result column="status" jdbcType="INTEGER" property="status"/>
   </resultMap>
 
-  <resultMap id="TeacherVoMap" type="xyz.kingsword.course.VO.TeacherVo">
+  <resultMap id="TeacherVoMap" type="xyz.kingsword.course.vo.TeacherVo">
     <id column="id" jdbcType="CHAR" property="id"/>
     <result column="name" jdbcType="CHAR" property="name"/>
     <result column="research_room" jdbcType="INTEGER" property="researchRoom"/>
@@ -53,16 +53,15 @@
   <insert id="insert" parameterType="xyz.kingsword.course.pojo.Teacher">
     insert ignore into teacher (id, `password`, `name`, research_room,
     phone, email, department_school,
-    teaching_title, education, gender, `role`,
-    course_in_charge, specialty_in_charge, `status`)
+    teaching_title, education, gender,
+    course_in_charge, specialty_in_charge)
     values
     <foreach collection="list" item="item" separator=",">
       (#{item.id,jdbcType=CHAR}, #{item.password,jdbcType=CHAR}, #{item.name,jdbcType=CHAR},
       #{item.researchRoom,jdbcType=INTEGER},
       #{item.phone,jdbcType=CHAR}, #{item.email,jdbcType=CHAR}, #{item.departmentSchool,jdbcType=CHAR},
       #{item.teachingTitle,jdbcType=VARCHAR}, #{item.education,jdbcType=VARCHAR}, #{item.gender,jdbcType=VARCHAR},
-      #{item.role,jdbcType=CHAR},
-      #{item.courseInCharge,jdbcType=CHAR}, #{item.specialtyInCharge,jdbcType=CHAR}, #{item.status})
+      #{item.courseInCharge,jdbcType=CHAR}, #{item.specialtyInCharge,jdbcType=CHAR})
     </foreach>
   </insert>
   <update id="updateByPrimaryKey" parameterType="xyz.kingsword.course.pojo.Teacher">
@@ -94,6 +93,7 @@
         and role =#{roleId}
       </if>
       and `status`=0
+      and id !='0'
     </where>
   </select>
   <select id="getByResearchRoom" resultMap="BaseResultMap">

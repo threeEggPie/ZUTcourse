@@ -15,8 +15,6 @@
     <result column="coach_teacher" jdbcType="CHAR" property="coachTeacher"/>
     <result column="research_room" jdbcType="CHAR" property="researchRoom"/>
     <result column="assessment_way" jdbcType="INTEGER" property="assessmentWay"/>
-    <result column="text_book" jdbcType="CHAR" property="textBook"/>
-    <result column="reference_book" jdbcType="CHAR" property="referenceBook"/>
     <result column="book_manager" jdbcType="CHAR" property="bookManager"/>
     <result column="homework_proportion" jdbcType="INTEGER" property="homeworkProportion"/>
     <result column="test_proportion" jdbcType="DOUBLE" property="testProportion"/>
@@ -29,6 +27,7 @@
     <result column="time_week" jdbcType="INTEGER" property="timeWeek"/>
     <result column="theory_week" jdbcType="INTEGER" property="theoryWeek"/>
     <result column="week_num" jdbcType="INTEGER" property="weekNum"/>
+    <result column="text_book" jdbcType="CHAR" property="textBook"/>
     <result column="time_theory" jdbcType="INTEGER" property="timeTheory"/>
     <result column="time_practical" jdbcType="INTEGER" property="timePractical"/>
     <result column="time_computer" jdbcType="INTEGER" property="timeComputer"/>
@@ -52,21 +51,21 @@
     <result column="tea_name" jdbcType="CHAR" property="name"/>
   </resultMap>
   <insert id="insert" parameterType="xyz.kingsword.course.pojo.Course">
-    insert ignore course (id, `name`, teacher_in_charge,
-                          type, core, nature, credit, coach, coach_teacher,
-                          colleges_or_departments, examination_way, research_room,
-                          assessment_way, text_book, reference_book,
-                          homework_proportion, test_proportion, lab_proportion,
-                          attendance_proportion, performance_proportion,
-                          paper_proportion, other_proportion, exam_proportion,
-                          time_week, week_num, time_theory,
-                          time_practical, time_computer, time_lab,
-                          time_homework, time_all, theory_week, `status`)
+    insert course (id, `name`, teacher_in_charge,
+                   type, core, nature, credit, coach, coach_teacher,
+                   colleges_or_departments, examination_way, research_room,
+                   assessment_way,
+                   homework_proportion, test_proportion, lab_proportion,
+                   attendance_proportion, performance_proportion,
+                   paper_proportion, other_proportion, exam_proportion,
+                   time_week, week_num, time_theory,
+                   time_practical, time_computer, time_lab,
+                   time_homework, time_all, theory_week, `status`)
     values (#{id,jdbcType=CHAR}, #{name,jdbcType=CHAR}, #{teacherInCharge,jdbcType=CHAR},
             #{type,jdbcType=INTEGER}, #{core,jdbcType=CHAR}, #{nature,jdbcType=INTEGER}, #{credit,jdbcType=INTEGER},
             #{coach,jdbcType=CHAR}, #{coachTeacher,jdbcType=CHAR},
             #{collegesOrDepartments,jdbcType=CHAR}, #{examinationWay,jdbcType=CHAR}, #{researchRoom,jdbcType=CHAR},
-            #{assessmentWay,jdbcType=INTEGER}, #{textBook,jdbcType=CHAR}, #{referenceBook,jdbcType=CHAR},
+            #{assessmentWay,jdbcType=INTEGER},
             #{homeworkProportion,jdbcType=INTEGER}, #{testProportion,jdbcType=DOUBLE}, #{labProportion,jdbcType=DOUBLE},
             #{attendanceProportion,jdbcType=DOUBLE}, #{performanceProportion,jdbcType=DOUBLE},
             #{paperProportion,jdbcType=REAL}, #{otherProportion,jdbcType=DOUBLE}, #{examProportion,jdbcType=DOUBLE},
@@ -75,10 +74,52 @@
             #{timeHomework,jdbcType=INTEGER}, #{timeAll,jdbcType=INTEGER}, #{theoryWeek,jdbcType=INTEGER}, 0)
   </insert>
   <insert id="importData">
-    insert course(id,`name`) values
+    insert into course (id, `name`, teacher_in_charge,
+    type, core, nature, credit, coach, coach_teacher,
+    colleges_or_departments, examination_way, research_room,
+    assessment_way,
+    homework_proportion, test_proportion, lab_proportion,
+    attendance_proportion, performance_proportion,
+    paper_proportion, other_proportion, exam_proportion,
+    time_week, week_num, time_theory,
+    time_practical, time_computer, time_lab,
+    time_homework, time_all, theory_week, `status`) values
     <foreach collection="list" item="item" separator=",">
-      (#{item.id},#{item.name})
+      (#{item.id,jdbcType=CHAR}, #{item.name,jdbcType=CHAR}, #{item.teacherInCharge,jdbcType=CHAR},
+      #{item.type,jdbcType=INTEGER}, #{item.core,jdbcType=CHAR}, #{item.nature,jdbcType=INTEGER},
+      #{item.credit,jdbcType=INTEGER},
+      #{item.coach,jdbcType=CHAR}, #{item.coachTeacher,jdbcType=CHAR},
+      #{item.collegesOrDepartments,jdbcType=CHAR}, #{item.examinationWay,jdbcType=CHAR},
+      #{item.researchRoom,jdbcType=CHAR},
+      #{item.assessmentWay,jdbcType=INTEGER},
+      #{item.homeworkProportion,jdbcType=INTEGER}, #{item.testProportion,jdbcType=DOUBLE},
+      #{item.labProportion,jdbcType=DOUBLE},
+      #{item.attendanceProportion,jdbcType=DOUBLE}, #{item.performanceProportion,jdbcType=DOUBLE},
+      #{item.paperProportion,jdbcType=REAL}, #{item.otherProportion,jdbcType=DOUBLE},
+      #{item.examProportion,jdbcType=DOUBLE},
+      #{item.timeWeek,jdbcType=INTEGER}, #{item.weekNum,jdbcType=INTEGER}, #{item.timeTheory,jdbcType=INTEGER},
+      #{item.timePractical,jdbcType=INTEGER}, #{item.timeComputer,jdbcType=INTEGER}, #{item.timeLab,jdbcType=INTEGER},
+      #{item.timeHomework,jdbcType=INTEGER}, #{item.timeAll,jdbcType=INTEGER}, #{item.theoryWeek,jdbcType=INTEGER}, 0)
     </foreach>
+    ON DUPLICATE KEY UPDATE
+    name=values(name),teacher_in_charge=values(teacher_in_charge),type=values(type),core=values(core),
+    nature=values(nature),credit=values(credit),coach=values(coach),coach_teacher=values(coach_teacher),
+    colleges_or_departments=values(colleges_or_departments),examination_way=values(examination_way),
+    research_room=values(research_room),assessment_way=values(assessment_way),homework_proportion=values(homework_proportion),
+    test_proportion=values(test_proportion),lab_proportion=values(lab_proportion),attendance_proportion=values(attendance_proportion),
+    performance_proportion=values(performance_proportion),
+    paper_proportion=values(paper_proportion),
+    other_proportion=values(other_proportion),
+    exam_proportion=values(exam_proportion),
+    time_week=values(time_week),
+    week_num=values(week_num),
+    time_theory=values(time_theory),
+    time_practical=values(time_practical),
+    time_computer=values(time_computer),
+    time_lab=values(time_lab),
+    time_homework=values(time_homework),
+    time_all=values(time_all),
+    theory_week=values(theory_week)
   </insert>
   <update id="updateByPrimaryKey" parameterType="xyz.kingsword.course.pojo.Course">
     update course
@@ -113,6 +154,8 @@
         theory_week             = #{theoryWeek,jdbcType=INTEGER}
     where id = #{id,jdbcType=CHAR}
   </update>
+
+
   <delete id="deleteCourse">
     delete course
     where id in
@@ -180,7 +223,7 @@
     colleges_or_departments, examination_way, research_room, assessment_way, text_book,
     reference_book, homework_proportion, test_proportion, lab_proportion, attendance_proportion,
     performance_proportion, paper_proportion, other_proportion, exam_proportion, time_week,
-    week_num, time_theory, time_practical, time_computer, time_lab, time_homework, time_all,
+    week_num, time_theory, time_practical, time_computer, time_lab, time_homework, time_all,text_book,
     theory_week, `status`, book_manager from
     course
     <where>
@@ -212,6 +255,7 @@
     </where>
     order by id
   </select>
+
   <select id="getBookManager" resultMap="TeacherMap">
     select teacher.name as tea_name, course.book_manager as tea_id
     from course
@@ -219,4 +263,12 @@
     where course.id = #{id}
       and course.`status` = 0;
   </select>
+
+
+  <select id="courseRepeated" resultType="java.lang.Integer">
+    select count(id)
+    from course
+    where id = #{courseId}
+  </select>
+
 </mapper>

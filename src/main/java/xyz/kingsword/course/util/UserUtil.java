@@ -3,10 +3,11 @@ package xyz.kingsword.course.util;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
 import cn.hutool.crypto.symmetric.SymmetricCrypto;
+import lombok.Getter;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import xyz.kingsword.course.VO.StudentVo;
-import xyz.kingsword.course.VO.TeacherVo;
+import xyz.kingsword.course.vo.StudentVo;
+import xyz.kingsword.course.vo.TeacherVo;
 import xyz.kingsword.course.enmu.ErrorEnum;
 import xyz.kingsword.course.exception.AuthException;
 import xyz.kingsword.course.pojo.User;
@@ -29,6 +30,9 @@ public class UserUtil {
     public static String encrypt(String content) {
         return aes.encryptHex(content);
     }
+
+    @Getter
+    private static final String DEFAULT_PASSWORD = "1bdca0a107fba49b54fd3b90ce33c8069db30fa7d76d87a895e4e054a5c6ad096262cfc3535b5cb5ee738c329424840f";
 
 //    /**
 //     * 解密获得明文
@@ -85,4 +89,5 @@ public class UserUtil {
         Optional.ofNullable(session).orElseThrow(() -> new AuthException(ErrorEnum.UN_LOGIN));
         return session;
     }
+
 }

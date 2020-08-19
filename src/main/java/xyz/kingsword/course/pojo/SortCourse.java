@@ -42,6 +42,11 @@ public class SortCourse implements Serializable {
      */
     private String mergedId;
 
+    /**
+     * 课序号
+     */
+    private String sortNum;
+
     private int flag;
 
     private static final long serialVersionUID = 1L;

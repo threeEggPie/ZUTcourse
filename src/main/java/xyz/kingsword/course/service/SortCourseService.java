@@ -2,7 +2,7 @@ package xyz.kingsword.course.service;
 
 import com.github.pagehelper.PageInfo;
 import org.apache.poi.ss.usermodel.Workbook;
-import xyz.kingsword.course.VO.SortCourseVo;
+import xyz.kingsword.course.vo.SortCourseVo;
 import xyz.kingsword.course.pojo.SortCourse;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
@@ -16,6 +16,9 @@ public interface SortCourseService {
 
     void setSortCourse(SortCourseUpdateParam sortCourseUpdateParam);
 
+    void setClasses(List<String> classNameList, int sortId);
+
+
     void deleteSortCourseRecord(List<Integer> id);
 
     List<SortCourseVo> getCourseHistory(String courseId);
@@ -28,7 +31,10 @@ public interface SortCourseService {
 
     void restoreCourseHead(List<Integer> id);
 
-    List<SortCourse> excelImport(InputStream inputStream);
+    void excelImport(InputStream file);
 
     Workbook excelExport(String semesterId);
+
+    void otherCourseImport(InputStream inputStream);
+
 }

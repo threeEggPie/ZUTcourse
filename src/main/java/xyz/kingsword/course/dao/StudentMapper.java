@@ -1,6 +1,6 @@
 package xyz.kingsword.course.dao;
 
-import xyz.kingsword.course.VO.StudentVo;
+import xyz.kingsword.course.vo.StudentVo;
 import xyz.kingsword.course.pojo.DO.CurriculumDo;
 import xyz.kingsword.course.pojo.Student;
 import xyz.kingsword.course.pojo.param.StudentSelectParam;

@@ -15,6 +15,10 @@ public class StudentSelectParam {
 
     private String className;
 
+    private int degree;
+
+    private int grade;
+
     @Builder.Default
     private int pageNum = 1;
 

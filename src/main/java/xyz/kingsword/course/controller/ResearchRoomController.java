@@ -30,14 +30,14 @@ public class ResearchRoomController {
     @ApiOperation("改")
     public Result update(@RequestBody ResearchRoom researchRoom) {
         researchroomService.update(researchRoom);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
     @ApiOperation("删")
     public Result delete(String name) {
         researchroomService.delete(name);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @GetMapping("/select")

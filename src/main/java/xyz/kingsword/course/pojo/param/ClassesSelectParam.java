@@ -15,9 +15,18 @@ public class ClassesSelectParam {
 
     private int grade;
 
+    private int speciality;
+
+    /**
+     * 学历筛选 0全部，1本科 2专科
+     */
+    private int degree;
+
+
     @Builder.Default
     private int pageNum = 1;
 
     @Builder.Default
     private int pageSize = 10;
+
 }

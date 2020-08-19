@@ -7,10 +7,11 @@
     <result column="course_id" jdbcType="CHAR" property="courseId"/>
     <result column="book_id" jdbcType="INTEGER" property="bookId"/>
     <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
+    <result column="discount" jdbcType="FLOAT" property="discount"/>
     <result column="status" jdbcType="INTEGER" property="status"/>
   </resultMap>
 
-  <resultMap id="BookOrderVoMap" type="xyz.kingsword.course.VO.BookOrderVo">
+  <resultMap id="BookOrderVoMap" type="xyz.kingsword.course.vo.BookOrderVo">
     <id column="order_id" jdbcType="INTEGER" property="orderId"/>
     <result column="user_id" jdbcType="CHAR" property="userId"/>
     <result column="user_name" jdbcType="CHAR" property="userName"/>
@@ -20,20 +21,10 @@
     <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
     <result column="price" jdbcType="FLOAT" property="price"/>
     <result column="course_id" jdbcType="CHAR" property="courseId"/>
+    <result column="discount" jdbcType="FLOAT" property="discount"/>
   </resultMap>
 
-  <resultMap id="BookExportViewMap" type="xyz.kingsword.course.pojo.DO.BookExportCourseDo">
-    <result column="course_name" jdbcType="CHAR" property="courseName"/>
-    <result column="course_id" jdbcType="CHAR" property="courseId"/>
-    <result column="nature" jdbcType="CHAR" property="nature"/>
-    <result column="class" jdbcType="VARCHAR" property="className"/>
-    <result column="tea_id" jdbcType="CHAR" property="teaId"/>
-    <result column="teacher_name" jdbcType="CHAR" property="teacherName"/>
-    <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
-    <result column="text_book" jdbcType="CHAR" property="textBook"/>
-  </resultMap>
-
-<!--  <resultMap id="BookOrderStatisticsMap" type="xyz.kingsword.course.VO.BookOrderStatistics">-->
+  <!--  <resultMap id="BookOrderStatisticsMap" type="xyz.kingsword.course.vo.BookOrderStatistics">-->
   <!--    <result column="book_id" property="bookId"/>-->
   <!--    <result column=""-->
   <!--  </resultMap>-->
@@ -52,6 +43,15 @@
     set `status`= -1
     where id = #{id}
   </update>
+  <update id="deleteByBook">
+    update book_order
+    set `status`= -1
+    where book_id in (
+    <foreach item="item" index="index" collection="bookIdList" separator=",">
+      #{item}
+    </foreach>
+    )
+  </update>
 
   <select id="selectByBookId" resultType="java.lang.Integer">
     select count(0)
@@ -60,8 +60,8 @@
       and class != '教师组'
   </select>
   <select id="select" resultMap="BookOrderVoMap">
-    select user_id,`name` as user_name, course_id,order_id, book_id,book_name,semester_id,price,class
-    from book_order_view
+    select user_id,book_order_view.`name` as user_name, course_id,order_id, book_id,book_name,semester_id,price,class
+    from book_order_view,classes,speciality
     <where>
       <if test="userId !=null and userId !=''">
         user_id=#{userId}
@@ -75,15 +75,26 @@
       <if test="bookId >0">
         and book_id=#{bookId}
       </if>
+      <if test="bookId >0">
+        and book_id=#{bookId}
+      </if>
+      <if test="grade >0">
+        and grade=#{grade}
+      </if>
+      <if test="grade >0">
+        and grade=#{grade}
+      </if>
+      <if test="degree == 1">
+        and speciality.parent_id &lt; 11
+      </if>
+      <if test="degree == 2">
+        and speciality.parent_id = 11
+      </if>
+      and classes.classname=book_order_view.class
+      and speciality.id=classes.speciality
     </where>
   </select>
 
-  <select id="export" resultMap="BookExportViewMap">
-    select *
-    from book_export_view
-    where semester_id = #{semesterId}
-    order by course_id;
-  </select>
   <select id="purchaseClass" resultType="java.lang.String">
     select distinct book_order_view.class
     from book_order_view
@@ -97,5 +108,41 @@
       and course_id = #{courseId}
       and class = '教师组'
     order by user_id
+  </select>
+
+  <select id="getClassBookCount" resultType="int">
+    select count(book_id)
+    from book_order_view
+    where book_id = #{bookId}
+      and class = #{className}
+  </select>
+
+  <update id="setSemesterDiscount">
+    update book_order
+    set discount =#{discount}
+    where semester_id = #{semester}
+  </update>
+  <select id="selectDiscountBySemester" parameterType="String" resultType="Double">
+    select discount
+    from book_order
+    where semester_id = #{semester}
+    limit 1
+  </select>
+
+  <select id="getDiscountList" resultType="xyz.kingsword.course.pojo.DO.SemesterDiscountDo">
+    SELECT semester_id As semesterId,
+           discount
+    FROM book_order
+    GROUP BY semester_id, discount
+    ORDER BY semester_id DESC
+  </select>
+  <select id="selectByBookIdSemester" resultType="java.lang.Integer">
+    select count(book_id) from book_order_view where semester_id=#{semesterId}
+    and book_id in (
+    <foreach collection="list" item="item" separator=",">
+      #{item}
+    </foreach>
+    )
+
   </select>
 </mapper>

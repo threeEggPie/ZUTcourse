@@ -29,39 +29,39 @@ public class TeacherController {
 
     @RequestMapping(value = "/select", method = RequestMethod.POST)
     @ApiOperation("查询")
-    public Result select(@RequestBody TeacherSelectParam param) {
+    public Result<Object> select(@RequestBody TeacherSelectParam param) {
         PageInfo<Teacher> teacherPageInfo = teacherService.select(param);
         return new Result<>(teacherPageInfo);
     }
 
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
     @ApiOperation("删除")
-    public Result deleteTeacher(String id) {
+    public Result<Object> deleteTeacher(String id) {
         teacherService.delete(id);
-        return new Result();
+        return new Result<>();
     }
 
     @RequestMapping(value = "/insert", method = RequestMethod.POST)
     @ApiOperation("新增")
-    public Result addTeacher(@RequestBody Teacher teacher) {
+    public Result<Object> addTeacher(@RequestBody Teacher teacher) {
         teacherService.insert(teacher);
-        return new Result();
+        return new Result<>();
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.PUT)
     @ApiOperation("更新")
-    public Result update(@RequestBody Teacher teacher) {
+    public Result<Object> update(@RequestBody Teacher teacher) {
         teacherService.update(teacher);
-        return new Result();
+        return new Result<>();
     }
 
 
     @RequestMapping(value = "/importData", method = RequestMethod.POST)
     @ApiOperation("批量导入")
-    public Result importData(@NonNull MultipartFile file) throws IOException {
+    public Result<Object> importData(@NonNull MultipartFile file) throws IOException {
         InputStream inputStream = file.getInputStream();
         Workbook workbook = new HSSFWorkbook(inputStream);
         teacherService.insert(workbook);
-        return new Result();
+        return new Result<>();
     }
 }

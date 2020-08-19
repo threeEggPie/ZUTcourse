@@ -1,7 +1,7 @@
 package xyz.kingsword.course.dao;
 
 import org.apache.ibatis.annotations.Param;
-import xyz.kingsword.course.VO.SortCourseVo;
+import xyz.kingsword.course.vo.SortCourseVo;
 import xyz.kingsword.course.pojo.SortCourse;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
@@ -21,6 +21,8 @@ public interface SortCourseMapper {
 
     int setTeacher(@Param("id") Integer id, @Param("teaId") String teaId);
 
+    int setClasses(@Param("className") String className, @Param("id") int id);
+
 
     /**
      * 多条件查询
@@ -37,9 +39,13 @@ public interface SortCourseMapper {
     /**
      * 获取排课历史信息
      */
-    List<SortCourseVo> getTeacherHistory(@Param("teacherId") String teacherId, @Param("semesterId") String semesterId);
+    List<SortCourseVo> getTeacherHistory(@Param("teacherId") String teacherId);
 
-    List<SortCourseVo> getCourseHistory(@Param("courseId") String courseId, @Param("semesterId") String semesterId);
+    List<SortCourseVo> getCourseHistory(@Param("courseId") String courseId);
 
     int setSortCourse(SortCourseUpdateParam param);
+
+    int selectMaxId();
+
+
 }

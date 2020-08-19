@@ -33,9 +33,9 @@ public class ClassesController {
 
     @PostMapping("/update")
     @ApiOperation("修改")
-    public Result update(Classes Classes) {
+    public Result<Object> update(Classes Classes) {
         classesService.update(Classes);
-        return new Result<>();
+        return Result.emptyResult();
     }
 
     @PostMapping("/select")
@@ -56,6 +56,6 @@ public class ClassesController {
     @GetMapping("/selectGrades")
     @ApiOperation("获取在校年级")
     public Result<List<Integer>> selectGrades() {
-        return new Result<>(Arrays.asList(2016, 2017, 2018, 2019));
+        return new Result<>(Arrays.asList(2016, 2017, 2018, 2019, 2020));
     }
 }

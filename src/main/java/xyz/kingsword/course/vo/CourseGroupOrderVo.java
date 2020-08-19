@@ -1,4 +1,4 @@
-package xyz.kingsword.course.VO;
+package xyz.kingsword.course.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -37,7 +37,7 @@ public interface CourseMapper {
 
     List<Course> select(CourseSelectParam param);
 
+    int courseRepeated(String courseId);
+
     void resetBookManager(String courseId);
-
-
 }

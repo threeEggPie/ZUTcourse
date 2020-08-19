@@ -1,8 +1,9 @@
-package xyz.kingsword.course.VO;
+package xyz.kingsword.course.vo;
 
 import lombok.Data;
 import xyz.kingsword.course.pojo.Book;
 
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -29,7 +30,7 @@ public class CourseVo {
      */
     private int nature;
 
-    private int credit;
+    private double credit;
 
     /**
      * 院考系考
@@ -42,6 +43,10 @@ public class CourseVo {
 
 
     private List<Book> bookList;
+
+    public List<Book> getReferenceBookList() {
+        return referenceBookList == null ? Collections.emptyList() : referenceBookList;
+    }
 
     private List<Book> referenceBookList;
 

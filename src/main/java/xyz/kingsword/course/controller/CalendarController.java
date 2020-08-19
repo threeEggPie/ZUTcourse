@@ -40,7 +40,7 @@ public class CalendarController {
      */
     @RequestMapping(value = "/getInfo", method = RequestMethod.GET)
     @ApiOperation("根据id返回教学日历")
-    public Result getCalendarById(int id) {
+    public Result<Object> getCalendarById(int id) {
         Calendar calendar = calendarService.selectOne(id);
         return new Result<>(calendar);
     }
@@ -53,14 +53,14 @@ public class CalendarController {
 
     @RequestMapping(value = "/update", method = RequestMethod.PUT)
     @ApiOperation("更新接口，仅更新teachingContent")
-    public Result update(@RequestBody Calendar calendar) {
+    public Result<Object> update(@RequestBody Calendar calendar) {
         calendarService.update(calendar);
-        return new Result();
+        return Result.emptyResult();
     }
 
     @RequestMapping(value = "/search", method = RequestMethod.POST)
     @ApiOperation("多条件查询接口")
-    public Result search(@RequestBody CalendarSelectParam param) {
+    public Result<Object> search(@RequestBody CalendarSelectParam param) {
         PageInfo<Calendar> pageInfo = calendarService.search(param);
         return new Result<>(pageInfo);
     }

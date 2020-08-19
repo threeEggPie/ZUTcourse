@@ -18,25 +18,26 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.kingsword.course.dao.*;
-import xyz.kingsword.course.enmu.CourseNature;
-import xyz.kingsword.course.enmu.CourseTypeEnum;
-import xyz.kingsword.course.enmu.RoleEnum;
-import xyz.kingsword.course.pojo.*;
-import xyz.kingsword.course.pojo.param.TeacherSelectParam;
+import xyz.kingsword.course.pojo.Classes;
+import xyz.kingsword.course.pojo.Student;
+import xyz.kingsword.course.pojo.TeachingContent;
 import xyz.kingsword.course.service.calendarExport.CalendarData;
-import xyz.kingsword.course.util.PinYinTool;
 import xyz.kingsword.course.util.SpringContextUtil;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @RunWith(SpringRunner.class)
@@ -45,17 +46,23 @@ public class CourseApplicationTests {
     @Autowired
     private TeacherMapper teacherMapper;
     @Autowired
-    private EhCacheCacheManager cacheManager;
-    @Autowired
-    private ConfigMapper configMapper;
-    @Autowired
     private SortCourseMapper sortCourseMapper;
     @Autowired
     private CourseMapper courseMapper;
+    @Autowired
+    private ClassesMapper classesMapper;
+
+    private Path filePath = Paths.get("C:\\Users\\wang\\Desktop", "19201软件全校课程.xls");
 
 
     @Test
+    @Transactional(rollbackFor = Exception.class)
     public void contextLoads() throws Exception {
+        System.out.println(666);
+    }
+
+    private void sortCourseImport() throws IOException {
+
     }
 
     private void importStudent() throws IOException {
@@ -90,88 +97,6 @@ public class CourseApplicationTests {
 
         ClassesMapper classesMapper = SpringContextUtil.getBean(ClassesMapper.class);
         classesMapper.insertList(classesSet);
-    }
-
-    private static boolean isChineseByScript(String a) {
-        Character.UnicodeScript sc = Character.UnicodeScript.of(a.charAt(0));
-        return sc == Character.UnicodeScript.HAN;
-    }
-
-    private void sortCourseImport() throws Exception {
-        PinYinTool tool = new PinYinTool();
-        Map<String, String> collect = teacherMapper.select(TeacherSelectParam.builder().pageSize(0).build()).parallelStream()
-                .collect(Collectors.toMap(Teacher::getName, Teacher::getId));
-        Set<String> teaNameSet = collect.keySet();
-        Workbook workbook = new HSSFWorkbook(new FileInputStream("C:\\Users\\wang\\Desktop\\19202学期教学计划.xls"));
-        Sheet sheet = workbook.getSheetAt(0);
-        String semesterId = "19202";
-        List<SortCourse> sortCourseList = new ArrayList<>();
-        List<Teacher> teacherList = new ArrayList<>();
-        for (int i = 0; i <= sheet.getLastRowNum(); i++) {
-            Row row = sheet.getRow(i);
-            String id = row.getCell(1).getStringCellValue();
-            int num = (int) row.getCell(5).getNumericCellValue();
-            String className = ReUtil.delAll("\\([^)]*\\)", row.getCell(4).getStringCellValue());
-            String teaName = row.getCell(12).getStringCellValue();
-            String teaId = teaNameSet.parallelStream().filter(teaName::contains).map(collect::get).collect(Collectors.joining());
-            if (teaId.isEmpty()) {
-                Teacher teacher = new Teacher();
-                teacher.setName(teaName);
-                String pinyin = tool.toPinYin(teaName, "", PinYinTool.Type.LOWERCASE);
-                teacher.setId(pinyin);
-                teaId = pinyin;
-                teacher.setRole("[" + RoleEnum.TEACHER.getCode() + "]");
-                teacherList.add(teacher);
-            }
-            SortCourse course = new SortCourse();
-            course.setCouId(id);
-            course.setTeaId(teaId);
-            course.setClassName(className);
-            course.setSemesterId(semesterId);
-            course.setStudentNum(num);
-            sortCourseList.add(course);
-        }
-        teacherMapper.insert(teacherList);
-        sortCourseMapper.insert(sortCourseList);
-//        System.out.println(sortCourseList.size());
-    }
-
-    private void courseImport() throws IOException {
-        Workbook workbook = new HSSFWorkbook(new FileInputStream("C:\\Users\\wang\\Desktop\\19202学期教学计划.xls"));
-        Sheet sheet = workbook.getSheetAt(0);
-        List<Course> courseList = new ArrayList<>();
-        for (int i = 0; i <= sheet.getLastRowNum(); i++) {
-            Row row = sheet.getRow(i);
-            String id = row.getCell(1).getStringCellValue();
-            String name = row.getCell(3).getStringCellValue();
-            String week = row.getCell(6).getStringCellValue();
-            week = Optional.ofNullable(week).orElse("0/0");
-            String[] data = week.split("/");
-            int timeWeek = 0;
-            if (data.length == 2) {
-                timeWeek = Integer.parseInt(data[0]);
-            }
-            double credit = row.getCell(8).getNumericCellValue();
-            String type = row.getCell(9).getStringCellValue();
-            String nature = row.getCell(10).getStringCellValue();
-            String way = row.getCell(11).getStringCellValue();
-            int theoryTime = (int) row.getCell(13).getNumericCellValue();
-            int labTime = (int) row.getCell(16).getNumericCellValue();
-            int studyingTime = (int) row.getCell(7).getNumericCellValue();
-            Course course = new Course();
-            course.setId(id);
-            course.setName(name);
-            course.setCredit(credit);
-            course.setType(CourseTypeEnum.get(type).getCode());
-            course.setNature(nature.equals("必修") ? CourseNature.NOT_REQUIRED.getCode() : CourseNature.REQUIRED.getCode());
-            course.setExaminationWay(way);
-            course.setTimeAll(studyingTime);
-            course.setTimeTheory(theoryTime);
-            course.setTimeLab(labTime);
-            course.setTimeWeek(timeWeek);
-            courseList.add(course);
-        }
-        courseList.forEach((a) -> courseMapper.insert(a));
     }
 
 

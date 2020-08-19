@@ -1,21 +1,19 @@
 package xyz.kingsword.course.service.impl;
 
-import cn.hutool.crypto.SecureUtil;
-import com.github.pagehelper.PageHelper;
+import cn.hutool.cache.Cache;
 import com.github.pagehelper.PageInfo;
+import com.github.pagehelper.page.PageMethod;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.cache.Cache;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import xyz.kingsword.course.VO.TeacherVo;
 import xyz.kingsword.course.dao.TeacherMapper;
 import xyz.kingsword.course.pojo.Teacher;
 import xyz.kingsword.course.pojo.param.TeacherSelectParam;
 import xyz.kingsword.course.service.TeacherService;
 import xyz.kingsword.course.util.UserUtil;
+import xyz.kingsword.course.vo.TeacherVo;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -31,14 +29,14 @@ public class TeacherServiceImpl implements TeacherService {
     private TeacherMapper teacherMapper;
 
     @Resource(name = "teacher")
-    private Cache cache;
+    private Cache<String, Teacher> cache;
 
     @Override
     public void insert(List<Teacher> teacherList) {
-        teacherList.forEach(v -> v.setPassword(UserUtil.encrypt(SecureUtil.md5("123456"))));
-        int flag = teacherMapper.insert(teacherList);
-        if (flag != teacherList.size())
-            log.error("数据库插入数据异常");
+        if (!teacherList.isEmpty()) {
+            teacherList.forEach(v -> v.setPassword(UserUtil.getDEFAULT_PASSWORD()));
+            teacherMapper.insert(teacherList);
+        }
     }
 
     @Override
@@ -72,7 +70,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public PageInfo<Teacher> select(TeacherSelectParam param) {
-        return PageHelper.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> teacherMapper.select(param));
+        return PageMethod.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> teacherMapper.select(param));
     }
 
     @Override
@@ -81,9 +79,8 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     @Override
-    @Cacheable(cacheNames = "teacher", key = "#id")
     public Teacher getTeacherById(String id) {
-        return teacherMapper.selectTeacherById(id);
+        return cache.get(id, () -> teacherMapper.selectTeacherById(id));
     }
 
     @Override

@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Data
 @ApiModel
 public class Teacher implements Serializable {
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(required = true, value = "姓名全拼小写，或工号皆可")
     private String id;
 
     @ApiModelProperty(hidden = true)
@@ -18,7 +18,6 @@ public class Teacher implements Serializable {
     @ApiModelProperty(required = true)
     private String name;
 
-    @ApiModelProperty(required = true)
     private String researchRoom;
 
     private String phone;

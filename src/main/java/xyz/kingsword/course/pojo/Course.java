@@ -5,7 +5,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -142,7 +141,7 @@ public class Course {
     /**
      * 总学时
      */
-    @ApiModelProperty(value = "总学时，前端考虑自动求和")
+    @ApiModelProperty(value = "总学时")
     private int timeAll;
 
 
@@ -186,19 +185,4 @@ public class Course {
     @ApiModelProperty(required = true, value = "期末考试占比")
     private double examProportion = 0;
 
-    public void setTimeAll(int timeAll) {
-        this.timeAll = timeTheory + timePractical + timeComputer + timeLab + timeHomework;
-    }
-
-    public void setTextBook(String textBook) {
-        this.textBook = textBook;
-    }
-
-    public List<Book> getTextBookList() {
-        return textBookList == null ? new ArrayList<>() : textBookList;
-    }
-
-    public List<Book> getReferenceBookList() {
-        return referenceBookList == null ? new ArrayList<>() : textBookList;
-    }
 }

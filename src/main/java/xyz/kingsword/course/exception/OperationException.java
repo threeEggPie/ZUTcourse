@@ -12,4 +12,8 @@ public class OperationException extends BaseException {
     public OperationException() {
         super(ErrorEnum.OPERATION_FORBIDDEN);
     }
+
+    public OperationException(String message) {
+        super(message);
+    }
 }

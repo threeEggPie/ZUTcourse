@@ -19,6 +19,8 @@ public class CourseGroupSelectParam {
 
     private String courseId;
 
+    private String courseName;
+
     private String teaId;
 
     private String className;

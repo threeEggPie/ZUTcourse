@@ -1,5 +1,6 @@
 package xyz.kingsword.course.aop;
 
+import cn.hutool.poi.exceptions.POIException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -61,9 +62,16 @@ public class ExceptionHandle {
 
     @ExceptionHandler(OperationException.class)
     @ResponseBody
-    public Result<ErrorEnum> exceptionGet(OperationException e) {
+    public Result<Object> exceptionGet(OperationException e) {
         log.error("操作异常");
-        return new Result<>(e.getErrorEnum());
+        return new Result<>(e.getErrorEnum() == null ? e.getMessage() : e.getErrorEnum());
+    }
+
+    @ExceptionHandler(POIException.class)
+    @ResponseBody
+    public Result<Object> exceptionGet(POIException e) {
+        log.error("excel数据异常");
+        return new Result<>("excel数据异常");
     }
 
 

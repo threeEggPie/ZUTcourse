@@ -4,8 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum CourseNature {
-    NOT_REQUIRED(1,"选修"),
-    REQUIRED(2,"必修");
+    NOT_REQUIRED(1, "选修"),
+    REQUIRED(2, "必修");
 
     private int code;
     private String content;
@@ -24,5 +24,9 @@ public enum CourseNature {
             }
         }
         return val;
+    }
+
+    public static CourseNature getContent(String content) {
+        return content.contains("必修") ? REQUIRED : NOT_REQUIRED;
     }
 }

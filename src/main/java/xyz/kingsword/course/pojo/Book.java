@@ -1,6 +1,7 @@
 package xyz.kingsword.course.pojo;
 
 
+import cn.hutool.core.util.NumberUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
@@ -58,6 +59,8 @@ public class Book implements Serializable {
     @ApiModelProperty(required = true)
     private String imgUrl;
 
+    private String courseId;
+
     /**
      * 为老师留几本书
      */
@@ -85,5 +88,9 @@ public class Book implements Serializable {
 
     public String getEdition() {
         return edition == null ? "" : edition;
+    }
+
+    public void setPrice(double price) {
+        this.price = NumberUtil.round(price, 2).doubleValue();
     }
 }

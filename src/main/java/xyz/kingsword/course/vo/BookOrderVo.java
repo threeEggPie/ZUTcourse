@@ -1,4 +1,4 @@
-package xyz.kingsword.course.VO;
+package xyz.kingsword.course.vo;
 
 import lombok.Data;
 
@@ -25,4 +25,6 @@ public class BookOrderVo {
     private String courseId;
 
     private String className;
+
+    private double discount;
 }

@@ -17,6 +17,8 @@ public interface BookMapper {
 
     List<Book> selectBookList(Collection<Integer> idList);
 
+    List<Book> selectBookListByCourse(String courseId);
+
     int forTeacherIncrease(Collection<Integer> idList);
 
     int cancelTeacherPurchase(int orderId);
@@ -24,5 +26,8 @@ public interface BookMapper {
     Book selectBookByPrimaryKey(int id);
 
     List<Book> selectAll();
+
+    List<Book> getTextBookByCourseList(Collection<String> courseList);
+
 
 }

@@ -1,31 +1,34 @@
 package xyz.kingsword.course.service.impl;
 
+import cn.hutool.cache.Cache;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
+import com.github.pagehelper.PageInfo;
+import com.github.pagehelper.page.PageMethod;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import xyz.kingsword.course.dao.*;
+import xyz.kingsword.course.dao.BookMapper;
+import xyz.kingsword.course.dao.CourseGroupMapper;
+import xyz.kingsword.course.dao.CourseMapper;
 import xyz.kingsword.course.enmu.ErrorEnum;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.exception.BaseException;
 import xyz.kingsword.course.exception.DataException;
-import xyz.kingsword.course.exception.OperationException;
 import xyz.kingsword.course.pojo.*;
-import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
+import xyz.kingsword.course.pojo.param.SelectBookDeclareParam;
 import xyz.kingsword.course.service.BookOrderService;
 import xyz.kingsword.course.service.BookService;
 import xyz.kingsword.course.util.ConditionUtil;
 import xyz.kingsword.course.util.SpringContextUtil;
+import xyz.kingsword.course.util.TimeUtil;
 import xyz.kingsword.course.util.UserUtil;
+import xyz.kingsword.course.vo.BookDeclareVo;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,44 +38,28 @@ public class BookServiceImpl implements BookService {
     @Resource
     private CourseMapper courseMapper;
     @Resource
-    private ConfigMapper configMapper;
-    @Resource
     private BookOrderService bookOrderService;
 
     @Resource(name = "book")
-    private Cache bookCache;
+    private Cache<Integer, Book> bookCache;
 
     @Override
     public List<Book> getTextBook(String courseId) {
-        Optional<Course> optional = courseMapper.getByPrimaryKey(courseId);
-        if (optional.isPresent()) {
-            Course course = optional.get();
-            String bookListJson = course.getTextBook();
-            return getByIdList(bookListJson);
-        }
-        return new ArrayList<>();
-    }
-
-    private List<Integer> getTextBookId(String courseId) {
-        Optional<Course> optional = courseMapper.getByPrimaryKey(courseId);
-        if (optional.isPresent()) {
-            String bookListJson = optional.get().getTextBook();
-            if (bookListJson != null && bookListJson.length() > 2) {
-                return JSONArray.parseArray(bookListJson, Integer.class);
-            }
-        }
-        return new ArrayList<>();
+        return bookMapper.selectBookListByCourse(courseId);
     }
 
     @Override
-    public List<Book> getReferenceBook(String courseId) {
-        Optional<Course> optional = courseMapper.getByPrimaryKey(courseId);
-        if (optional.isPresent()) {
-            Course course = optional.get();
-            String bookListJson = course.getReferenceBook();
-            return getByIdList(bookListJson);
+    public List<Book> getTextBookByCourseList(Collection<String> courseIdCollection) {
+        if (CollUtil.isNotEmpty(courseIdCollection)) {
+            return bookMapper.getTextBookByCourseList(courseIdCollection);
         }
-        return new ArrayList<>();
+        return Collections.emptyList();
+    }
+
+
+    @Override
+    public List<Book> getReferenceBook(String courseId) {
+        return Collections.emptyList();
     }
 
     /**
@@ -82,11 +69,11 @@ public class BookServiceImpl implements BookService {
      * @return List<Book>
      */
     @Override
-    public List<Book> getByIdList(Collection<Integer> idList) {
+    public List<Book> getByBookIdList(Collection<Integer> idList) {
         List<Book> bookList = new ArrayList<>(idList.size());
         Iterator<Integer> iterator = idList.iterator();
         while (iterator.hasNext()) {
-            Book book = bookCache.get(iterator.next(), Book.class);
+            Book book = bookCache.get(iterator.next());
             if (book != null) {
                 bookList.add(book);
                 iterator.remove();
@@ -99,68 +86,53 @@ public class BookServiceImpl implements BookService {
         return bookList;
     }
 
+    /**
+     * 筛选教材申报情况
+     */
     @Override
-    public Map<Integer, Book> getMap(Collection<Integer> idList) {
-        Collection<Integer> collection = new ArrayList<>(idList);
-        Map<Integer, Book> map = new HashMap<>(collection.size());
-        Iterator<Integer> iterator = collection.iterator();
-        while (iterator.hasNext()) {
-            int id = iterator.next();
-            Optional.ofNullable(bookCache.get(id, Book.class)).ifPresent(v -> {
-                map.put(id, v);
-                iterator.remove();
-            });
+    public PageInfo<BookDeclareVo> selectBookDeclare(SelectBookDeclareParam param) {
+        CourseGroupMapper courseGroupMapper = SpringContextUtil.getBean(CourseGroupMapper.class);
+        PageInfo pageInfo = PageMethod.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> courseGroupMapper.selectBookDeclareStatus(param));
+        List<CourseGroup> courseGroupList = pageInfo.getList();
+        List<String> courseIdList = courseGroupList.stream().map(CourseGroup::getCouId).collect(Collectors.toList());
+
+        Map<String, List<Book>> bookMap = getBookMap(courseIdList);
+        Map<String, List<CourseGroup>> courseGroupTeacherMap = courseGroupMapper.getCourseGroupTeacher(courseIdList, param.getSemesterId())
+                .stream().collect(Collectors.groupingBy(CourseGroup::getCouId));
+
+        String semesterId = param.getSemesterId();
+        String semesterName = TimeUtil.getSemesterName(semesterId);
+        List<BookDeclareVo> bookDeclareVoLit = new ArrayList<>(courseGroupList.size());
+        for (CourseGroup courseGroup : courseGroupList) {
+            String courseId = courseGroup.getCouId();
+            BookDeclareVo bookDeclareVo = new BookDeclareVo();
+            bookDeclareVo.setCourseId(courseGroup.getCouId());
+            bookDeclareVo.setCourseName(courseGroup.getCourseName());
+            bookDeclareVo.setNature(courseGroup.getCourseNature());
+            bookDeclareVo.setSemesterId(semesterId);
+            bookDeclareVo.setSemesterName(semesterName);
+            bookDeclareVo.setBookList(bookMap.getOrDefault(courseId, Collections.emptyList()));
+            List<String> teacherList = courseGroupTeacherMap.containsKey(courseId) ? courseGroupTeacherMap.get(courseId).stream().map(CourseGroup::getTeacherName).distinct().collect(Collectors.toList()) : Collections.emptyList();
+            bookDeclareVo.setCourseGroup(teacherList);
+
+            bookDeclareVoLit.add(bookDeclareVo);
         }
-        if (!collection.isEmpty()) {
-            List<Book> bookListDb = bookMapper.selectBookList(collection);
-            bookListDb.forEach(v -> map.put(v.getId(), v));
-        }
-        return map;
+        pageInfo.setList(bookDeclareVoLit);
+        return pageInfo;
     }
 
-    @Override
-    public List<Book> getByIdList(String json) {
-        return json != null && json.length() > 2 ? getByIdList(JSONArray.parseArray(json, Integer.class)) : new ArrayList<>();
-    }
 
     @Override
-    @Cacheable(cacheNames = "book", key = "#id")
     public Book getBook(int id) {
-        return bookMapper.selectBookByPrimaryKey(id);
+        return bookCache.get(id, () -> bookMapper.selectBookByPrimaryKey(id));
     }
 
 
     @Override
-    public void setDeclareStatus(boolean flag) {
-        ConditionUtil.validateTrue(!flag || !getPurchaseStatus()).orElseThrow(() -> new OperationException(ErrorEnum.OPERATION_FORBIDDEN));
-        configMapper.setDeclareStatus(flag);
-    }
-
-    @Override
-    public void setPurchaseStatus(boolean flag) {
-        ConditionUtil.validateTrue(!flag || !getDeclareStatus()).orElseThrow(() -> new OperationException(ErrorEnum.OPERATION_FORBIDDEN));
-        configMapper.setPurchaseStatus(flag);
-    }
-
-    @Override
-    public boolean getDeclareStatus() {
-        return configMapper.selectDeclareStatus();
-//        return Optional.ofNullable(configCache.get("declareStatus", Boolean.class)).orElse(false);
-    }
-
-
-    @Override
-    public boolean getPurchaseStatus() {
-        return configMapper.selectPurchaseStatus();
-//        return Optional.ofNullable(configCache.get("purchaseStatus", Boolean.class)).orElse(false);
-    }
-
-
-    @Override
-    @CachePut(cacheNames = "book", key = "#result.id")
     public Book update(Book book) {
-//        ConditionUtil.validateTrue(declareCheck()).orElseThrow(() -> new OperationException(ErrorEnum.OPERATION_TIME_FORBIDDEN));
+        validateAuth(getBook(book.getId()).getCourseId());
         bookMapper.update(book);
+        bookCache.put(book.getId(), book);
         return book;
     }
 
@@ -172,20 +144,21 @@ public class BookServiceImpl implements BookService {
      */
     @Override
     @Transactional
-    @CachePut(cacheNames = "book", key = "#result.id")
     public Book insert(Book book, String courseId) {
         validateAuth(courseId);
-//        数据重复验证
+//        避免老师申报书籍重复
         List<Book> bookList = getTextBook(courseId);
         bookList.parallelStream().map(Book::getIsbn).forEach(v -> {
             ConditionUtil.validateTrue(!StrUtil.equals(v, book.getIsbn())).orElseThrow(() -> new DataException(ErrorEnum.DATA_REPLICATION));
         });
+//        查课程组所有老师
         CourseGroupMapper courseGroupMapper = SpringContextUtil.getBean(CourseGroupMapper.class);
-        List<CourseGroup> courseGroupList = courseGroupMapper.getNextSemesterCourseGroup(courseId);
+        List<CourseGroup> courseGroupList = courseGroupMapper.getSemesterCourseGroup(courseId, TimeUtil.getNextSemester().getId());
         book.setForTeacher(courseGroupList.size());
+        book.setCourseId(courseId);
         bookMapper.insert(book);
         int bookId = book.getId();
-        courseMapper.addCourseBook(bookId, courseId);
+        bookCache.put(bookId, book);
 
         List<BookOrder> bookOrderList = new ArrayList<>(courseGroupList.size());
         for (CourseGroup courseGroup : courseGroupList) {
@@ -200,34 +173,30 @@ public class BookServiceImpl implements BookService {
         return book;
     }
 
-    @Override
-    public void delete(@NonNull List<Integer> idList, @NonNull String courseId) {
-        validateAuth(courseId);
-        if (!idList.isEmpty()) {
-            idList.forEach(v -> {
-                int flag = bookOrderService.select(BookOrderSelectParam.builder().bookId(v).build()).size();
-                ConditionUtil.validateTrue(flag == 0).orElseThrow(() -> new OperationException(ErrorEnum.ORDERED));
-                bookCache.evict(v);
-            });
-            List<Integer> textBookIdList = getTextBookId(courseId);
-            textBookIdList.removeAll(idList);
-            courseMapper.setTextBook(JSON.toJSONString(textBookIdList), courseId);
-        }
-    }
-
-
     /**
-     * 报教材开关验证
+     * 删除教材时，如果教材已被订购，则一并删除订单信息
+     *
+     * @param bookIdList bookIdList
+     * @param courseId   courseId
      */
-    private boolean declareCheck() {
-        User user = UserUtil.getUser();
-        Integer roleId = user.getCurrentRole();
-        if (roleId != null && roleId == RoleEnum.ACADEMIC_MANAGER.getCode()) {
-            return true;
-        }
-        return getDeclareStatus();
-
+    @Override
+    public void delete(@NonNull List<Integer> bookIdList, @NonNull String courseId) {
+        validateAuth(courseId);
+        String semesterId = TimeUtil.getNextSemester().getId();
+        int count = bookOrderService.selectByBookIdSemester(bookIdList, semesterId);
+        ConditionUtil.validateTrue(count == 0).orElseThrow(() -> new BaseException("教材已被学生订购，不能删除"));
+        bookMapper.delete(bookIdList);
+        bookIdList.forEach(v -> bookCache.remove(v));
     }
+
+    private Map<String, List<Book>> getBookMap(List<String> courseIdList) {
+        if (courseIdList == null || courseIdList.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return bookMapper.getTextBookByCourseList(courseIdList).stream().collect(Collectors.groupingBy(Book::getCourseId));
+    }
+
 
     /**
      * 需要对教材管理进行权限控制，一个课程组只能一个人报教材，哪个老师先报就进行授权，其他人不能报，对教学部不做限制

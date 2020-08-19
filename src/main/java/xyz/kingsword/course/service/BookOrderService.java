@@ -1,11 +1,12 @@
 package xyz.kingsword.course.service;
 
 import org.apache.poi.ss.usermodel.Workbook;
-import xyz.kingsword.course.VO.BookOrderVo;
-import xyz.kingsword.course.VO.CourseGroupOrderVo;
 import xyz.kingsword.course.pojo.BookOrder;
 import xyz.kingsword.course.pojo.param.BookOrderSelectParam;
 import xyz.kingsword.course.pojo.param.DeclareBookExportParam;
+import xyz.kingsword.course.vo.BookOrderVo;
+import xyz.kingsword.course.vo.CourseGroupOrderVo;
+import xyz.kingsword.course.vo.SemesterDiscountVo;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,6 +18,10 @@ public interface BookOrderService {
 
     void cancelPurchase(int id);
 
+    void deleteByBook(List<Integer> bookIdList);
+
+    int selectByBookIdSemester(List<Integer> bookIdList, String semesterId);
+
     void insertByGrade(Collection<Integer> gradeList, String semesterId);
 
     List<BookOrderVo> select(BookOrderSelectParam param);
@@ -25,13 +30,27 @@ public interface BookOrderService {
 
     Workbook exportAllStudentRecord(DeclareBookExportParam param);
 
-    Workbook exportSingleRecord(String studentId);
-
     Workbook exportClassRecord(String className, String semesterId);
 
     byte[] exportPluralClassBookInfo(List<String> className, String semesterId);
 
     Workbook exportBookOrderStatistics(String semesterId);
 
+    /**
+     * 出库单导出
+     *
+     * @param grade      2017
+     * @param semesterId 19002
+     * @param degree     1
+     * @return workbook
+     */
+    Workbook exportOutBoundData(int grade, String semesterId, int degree);
 
+    Workbook exportBookSettlement(int grade, int degree);
+
+    void setSemesterDiscount(String semester, Double discount);
+
+    Double getDiscountBySemester(String semester);
+
+    List<SemesterDiscountVo> getDiscountBySemesterList();
 }

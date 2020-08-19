@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import xyz.kingsword.course.VO.StudentVo;
+import xyz.kingsword.course.vo.StudentVo;
 import xyz.kingsword.course.pojo.Result;
 import xyz.kingsword.course.pojo.Student;
 import xyz.kingsword.course.pojo.param.StudentSelectParam;

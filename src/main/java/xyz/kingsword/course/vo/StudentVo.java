@@ -1,10 +1,9 @@
-package xyz.kingsword.course.VO;
+package xyz.kingsword.course.vo;
 
 import lombok.Data;
 import xyz.kingsword.course.enmu.RoleEnum;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 public class StudentVo {

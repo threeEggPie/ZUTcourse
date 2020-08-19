@@ -27,16 +27,28 @@
         student_num = #{studentNum,jdbcType=INTEGER}
     where classname = #{classname,jdbcType=CHAR}
   </update>
+  <update id="updateStudentNum">
+    update classes
+    set student_num=(SELECT count(id) from student where class_name = #{className})
+    where classname = #{className};
+  </update>
   <select id="select" resultMap="BaseResultMap">
-    select *
-    from classes
+    select classes.*
+    from classes,speciality
     <where>
       <if test="className !=null and className !=''">
         classname=#{className}
       </if>
       <if test="grade >0">
-        grade=#{grade}
+        and grade=#{grade}
       </if>
+      <if test="degree == 1">
+        and speciality.parent_id &lt; 11
+      </if>
+      <if test="degree == 2">
+        and speciality.parent_id = 11
+      </if>
+      and classes.speciality=speciality.id
     </where>
     order by grade,classname
   </select>
@@ -53,12 +65,6 @@
       #{item}
     </foreach>
     )
-  </select>
-  <select id="getCurriculum" resultMap="CourseMap">
-    SELECT course_name, text_book
-    from course_group_view
-    where class_name LIKE CONCAT('%', #{className}, '%')
-      and semester_id = #{semesterId}
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap">
     select *

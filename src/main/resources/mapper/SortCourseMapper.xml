@@ -13,19 +13,18 @@
     <result column="flag" jdbcType="INTEGER" property="flag"/>
     <result column="merged_id" jdbcType="CHAR" property="mergedId"/>
   </resultMap>
-  <resultMap id="SortCourseViewMap" type="xyz.kingsword.course.VO.SortCourseVo">
+  <resultMap id="SortCourseViewMap" type="xyz.kingsword.course.vo.SortCourseVo">
     <id column="id" jdbcType="INTEGER" property="id"/>
     <result column="tea_id" jdbcType="CHAR" property="teacherId"/>
     <result column="teacher_name" jdbcType="CHAR" property="teacherName"/>
     <result column="cou_id" jdbcType="CHAR" property="courseId"/>
     <result column="course_name" jdbcType="INTEGER" property="courseName"/>
     <result column="nature" jdbcType="CHAR" property="nature"/>
+    <result column="type" jdbcType="CHAR" property="type"/>
     <result column="student_num" jdbcType="INTEGER" property="studentNum"/>
     <result column="semester_id" jdbcType="CHAR" property="semesterId"/>
     <result column="class" jdbcType="CHAR" property="className"/>
     <result column="book_manager" jdbcType="CHAR" property="bookManager"/>
-    <result column="text_book" jdbcType="CHAR" property="textBookString"/>
-    <result column="reference_book" jdbcType="CHAR" property="referenceBookString"/>
     <result column="text_book_num" jdbcType="INTEGER" property="textBookNum"/>
     <result column="reference_book_num" jdbcType="INTEGER" property="referenceBookNum"/>
   </resultMap>
@@ -36,8 +35,7 @@
   </select>
   <select id="search" resultMap="SortCourseViewMap">
     select sortcourse_id as id, tea_id, teacher_name, cou_id, course_name,
-    nature,text_book,reference_book,JSON_LENGTH(text_book) as text_book_num,
-    student_num, semester_id, class,book_manager
+    nature,`type`,student_num, semester_id, class,book_manager
     from sortcourse_view
     <where>
       <if test="teaId !=null and teaId !=''">
@@ -52,11 +50,26 @@
       <if test="courseName !=null and courseName!=''">
         and course_name like concat('%',#{courseName},'%')
       </if>
+      <if test="declareStatus !=null and declareStatus==true">
+        and get_text_book_num(cou_id)>0
+      </if>
+      <if test="declareStatus !=null and declareStatus==false">
+        and get_text_book_num(cou_id)=0
+      </if>
+      <if test="type !=null">
+        and type =#{type}
+      </if>
+      <if test="nature !=null">
+        and nature =#{nature}
+      </if>
+      <if test="courseName !=null and courseName!=''">
+        and course_name like concat('%',#{courseName},'%')
+      </if>
       <if test="sortCourseFlag==-1">
-        and tea_id is null
+        and tea_id = '0'
       </if>
       <if test="sortCourseFlag==1">
-        and tea_id is not null
+        and tea_id != '0'
       </if>
     </where>
     order by semester_id,cou_id,tea_id
@@ -75,14 +88,12 @@
            cou_id,
            course_name,
            nature,
-           text_book,
-           reference_book,
            student_num,
            semester_id,
            class
     from sortcourse_view
     where tea_id = #{teacherId}
-      and semester_id &lt; #{semesterId}
+      and semester_id &lt;= (select max(id) from semester)
   </select>
 
   <select id="getCourseHistory" resultMap="SortCourseViewMap">
@@ -92,14 +103,16 @@
            cou_id,
            course_name,
            nature,
-           text_book,
-           reference_book,
            student_num,
            semester_id,
            class
-    from sortcourse_view
-    where cou_id = #{courseId}
-      and semester_id &lt; #{semesterId}
+    FROM sortcourse_view
+    WHERE cou_id = #{courseId}
+      and semester_id &lt; (select max(id) from semester)
+  </select>
+  <select id="selectMaxId" resultType="java.lang.Integer">
+    select max(id)
+    from sortcourse
   </select>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="xyz.kingsword.course.pojo.SortCourse"
           useGeneratedKeys="true">
@@ -153,9 +166,9 @@
     </set>
     where id=#{id} and `status`=0
   </update>
-  <update id="updateChainses">
+  <update id="setClasses">
     update sortcourse
-    set tea_id=#{teaId}
+    set class=#{className}
     where id = #{id}
   </update>
 </mapper>

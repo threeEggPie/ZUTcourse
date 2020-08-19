@@ -2,7 +2,6 @@ package xyz.kingsword.course.pojo;
 
 import lombok.Data;
 
-import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -14,7 +13,6 @@ public class User implements Serializable {
     /**
      * 对应student表或teacher表的id
      */
-    @Size(max = 4)
     private String username;
 
     private String password;
