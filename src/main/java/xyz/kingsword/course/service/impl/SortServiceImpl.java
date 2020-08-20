@@ -188,7 +188,7 @@ public class SortServiceImpl implements SortCourseService {
                     sortCourseVo.setBookManager(bookManager.getName());
                 }
             }
-            CollUtil.sort(sortCourseVoList, (a, b) -> StrUtil.compare(a.getCourseId(), b.getCourseId(), false));
+//            CollUtil.sort(sortCourseVoList, (a, b) -> StrUtil.compare(a.getCourseId(), b.getCourseId(), false));
         }
     }
 
