@@ -51,6 +51,7 @@ public class UserController {
     @RequestMapping(value = "/userInfo", method = RequestMethod.GET)
     @ApiOperation(value = "获取用户信息")
     public Result<Object> userInfo(HttpSession session) {
+        System.out.println(session.getId());
         User user = (User) session.getAttribute("user");
         Object o = userService.getUserInfo(user);
         return new Result<>(o);

@@ -20,22 +20,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.kingsword.course.dao.CourseGroupMapper;
 import xyz.kingsword.course.dao.CourseMapper;
+import xyz.kingsword.course.dao.SortCourseLogMapper;
 import xyz.kingsword.course.dao.SortCourseMapper;
 import xyz.kingsword.course.enmu.CourseTypeEnum;
 import xyz.kingsword.course.enmu.ErrorEnum;
 import xyz.kingsword.course.exception.DataException;
 import xyz.kingsword.course.exception.OperationException;
-import xyz.kingsword.course.pojo.Course;
-import xyz.kingsword.course.pojo.CourseGroup;
-import xyz.kingsword.course.pojo.SortCourse;
-import xyz.kingsword.course.pojo.Teacher;
+import xyz.kingsword.course.pojo.*;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
 import xyz.kingsword.course.pojo.param.TeacherSelectParam;
-import xyz.kingsword.course.service.BookService;
-import xyz.kingsword.course.service.ClassesService;
-import xyz.kingsword.course.service.SortCourseService;
-import xyz.kingsword.course.service.TeacherService;
+import xyz.kingsword.course.service.*;
 import xyz.kingsword.course.util.ConditionUtil;
 import xyz.kingsword.course.util.PinYinTool;
 import xyz.kingsword.course.util.SpringContextUtil;
@@ -43,6 +38,7 @@ import xyz.kingsword.course.util.TimeUtil;
 import xyz.kingsword.course.vo.SortCourseVo;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
@@ -69,15 +65,25 @@ public class SortServiceImpl implements SortCourseService {
     @Resource
     private BookService bookService;
 
+    @Resource
+    private SortCourseLogService logService;
+
+
 
     @Override
     public void insertSortCourseList(List<SortCourse> sortCourseList) {
         sortcourseMapper.insert(sortCourseList);
     }
 
+
     @Override
-    public void setSortCourse(SortCourseUpdateParam sortCourseUpdateParam) {
-        sortcourseMapper.setSortCourse(sortCourseUpdateParam);
+    public void setSortCourse(SortCourseUpdateParam sortCourseUpdateParam, HttpSession session) {
+        int count = sortcourseMapper.setSortCourse(sortCourseUpdateParam);
+        if (count!=0){
+            logService.addLog(sortCourseUpdateParam,session);
+        }
+
+
     }
 
     @Override

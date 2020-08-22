@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.kingsword.course.dao.SortCourseLogMapper">
+    <insert id="insert" useGeneratedKeys="true">
+        INSERT INTO `course`.`sortcourse_logs`
+        (`sortcourse_id`, `operator_id`, `operator_name`, `teacher_name`)
+        VALUES ( #{param.id}, #{user.username}, #{user.name}, #{param.teacherName});
+    </insert>
+    <select id="selectLogBySortCourseId" parameterType="Integer" resultType="xyz.kingsword.course.pojo.SortCourseLog">
+        select * from sortcourse_logs where sortcourse_id=#{id} ORDER BY operate_time DESC
+    </select>
+</mapper>

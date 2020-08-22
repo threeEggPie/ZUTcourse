@@ -7,6 +7,7 @@ import xyz.kingsword.course.pojo.SortCourse;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
 
+import javax.servlet.http.HttpSession;
 import java.io.InputStream;
 import java.util.List;
 
@@ -14,7 +15,7 @@ public interface SortCourseService {
 
     void insertSortCourseList(List<SortCourse> sortCourseList);
 
-    void setSortCourse(SortCourseUpdateParam sortCourseUpdateParam);
+    void setSortCourse(SortCourseUpdateParam sortCourseUpdateParam, HttpSession session);
 
     void setClasses(List<String> classNameList, int sortId);
 

@@ -12,4 +12,6 @@ public class SortCourseUpdateParam {
     private String teacherId;
 
     private String courseId;
+
+    private String teacherName;
 }

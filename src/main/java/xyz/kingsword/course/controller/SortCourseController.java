@@ -14,6 +14,7 @@ import xyz.kingsword.course.annocations.Role;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.exception.BaseException;
 import xyz.kingsword.course.pojo.Result;
+import xyz.kingsword.course.pojo.User;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
 import xyz.kingsword.course.service.SortCourseService;
@@ -21,7 +22,9 @@ import xyz.kingsword.course.util.ConditionUtil;
 import xyz.kingsword.course.util.TimeUtil;
 import xyz.kingsword.course.vo.SortCourseVo;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -73,8 +76,8 @@ public class SortCourseController {
     @RequestMapping(value = "/setSortCourse", method = RequestMethod.PUT)
     @ApiOperation(value = "给课程设置老师，或者给老师设置课程")
     @ApiImplicitParam(value = "id为排课数据id必传，其他任给一个", required = true)
-    public Result<Object> setSortCourse(@RequestBody SortCourseUpdateParam param) {
-        sortCourseService.setSortCourse(param);
+    public Result<Object> setSortCourse(@RequestBody SortCourseUpdateParam param, HttpSession session) {
+        sortCourseService.setSortCourse(param,session);
         return Result.emptyResult();
     }
 
