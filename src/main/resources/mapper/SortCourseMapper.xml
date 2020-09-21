@@ -163,7 +163,7 @@
     </foreach>)
   </update>
 
-  <update id="setSortCourse">
+  <update id="setSortCourse">search
     update sortcourse
     <set>
       <if test="teacherId!=null and teacherId!=''">

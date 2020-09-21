@@ -2,6 +2,7 @@ package xyz.kingsword.course.controller;
 
 import cn.hutool.core.convert.Convert;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 import xyz.kingsword.course.annocations.Role;
@@ -109,5 +110,11 @@ public class BookController {
     @Role(RoleEnum.ACADEMIC_MANAGER)
     public Result<Object> selectBookDeclare(@RequestBody SelectBookDeclareParam param) {
         return new Result<>(bookService.selectBookDeclare(param));
+    }
+    @RequestMapping(value = "/getBookHistory", method = RequestMethod.GET)
+    @ApiOperation("查询课程的申报教材历史记录")
+    public Result<Object> getBookHistory(@RequestParam String courId){
+        List<Book> books = bookService.getBookHistory(courId);
+        return new Result<>(books);
     }
 }

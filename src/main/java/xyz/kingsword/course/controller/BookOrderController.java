@@ -196,7 +196,7 @@ public class BookOrderController {
             @ApiImplicitParam(name = "degree", required = true, value = "学历筛选 0全部，1本科 2专科")
     }
     )
-    public void outBound(HttpServletResponse response, int grade, String semesterId, int degree) throws IOException {
+    public void outBound(HttpServletResponse response, Integer grade, String semesterId, Integer degree) throws IOException {
         Workbook workbook = bookOrderService.exportOutBoundData(grade, semesterId, degree);
         String fileName = semesterId + TimeUtil.getGradeName(grade, degree) + "出库单" + excelPostfix(workbook);
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);

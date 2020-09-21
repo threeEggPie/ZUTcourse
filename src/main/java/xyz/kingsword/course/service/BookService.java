@@ -29,4 +29,5 @@ public interface BookService {
 
     PageInfo<BookDeclareVo> selectBookDeclare(SelectBookDeclareParam param);
 
+    List<Book> getBookHistory(String courId);
 }

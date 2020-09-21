@@ -121,6 +121,12 @@ public class BookServiceImpl implements BookService {
         return pageInfo;
     }
 
+    @Override
+    public List<Book> getBookHistory(String courId) {
+        List<Book> books=bookMapper.selectBookHistory(courId);
+        return books;
+    }
+
 
     @Override
     public Book getBook(int id) {

@@ -103,5 +103,8 @@
     )
     and `status`=0
   </select>
+  <select id="selectBookHistory" resultMap="BaseResultMap">
+    select * from book where course_id=#{courId} and status= -1
+  </select>
 
 </mapper>
