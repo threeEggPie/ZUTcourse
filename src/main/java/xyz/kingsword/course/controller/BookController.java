@@ -80,7 +80,7 @@ public class BookController {
     @ApiOperation("查看单个教材的详情")
     public Result<Object> bookInfo(int id) {
         Book book = bookService.getBook(id);
-        return new Result<>(book);  
+        return new Result<>(book); 
     }
 
     @RequestMapping(value = "/list", method = RequestMethod.POST)
