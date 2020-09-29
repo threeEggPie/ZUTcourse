@@ -37,7 +37,7 @@
     from classes,speciality
     <where>
       <if test="className !=null and className !=''">
-        classname=#{className}
+        classname like "%"#{className}"%"
       </if>
       <if test="grade >0">
         and grade=#{grade}
