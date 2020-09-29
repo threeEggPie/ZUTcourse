@@ -6,6 +6,9 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -150,6 +153,8 @@ public class BookOrderServiceImpl implements BookOrderService {
 
     @Override
     public List<BookOrderVo> select(BookOrderSelectParam param) {
+        //pageSize设为0可查询全部
+        PageHelper.startPage(param.getPageNum(), param.getPageSize(), true, null, true);
         return bookOrderMapper.select(param);
     }
 

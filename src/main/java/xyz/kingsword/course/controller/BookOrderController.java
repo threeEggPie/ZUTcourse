@@ -5,10 +5,8 @@ import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import com.github.pagehelper.PageInfo;
+import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -94,13 +92,14 @@ public class BookOrderController {
     @ApiOperation("获取学生订书记录")
     @Role({RoleEnum.STUDENT})
     public Result<Object> getStudentOrder(String semesterId) {
-        StudentVo studentVo = Optional.ofNullable(UserUtil.getStudent()).orElseThrow(AuthException::new);
-        List<BookOrderVo> bookOrderVoList = bookOrderService.select(BookOrderSelectParam.builder().semesterId(semesterId).userId(studentVo.getId()).build());
-        BigDecimal sum = bookOrderVoList.parallelStream().map(v -> BigDecimal.valueOf(v.getPrice())).reduce(BigDecimal::add).orElse(new BigDecimal(0));
-        Dict dict = Dict.create()
-                .set("bookList", bookOrderVoList)
-                .set("sum", sum.toString());
-        return new Result<>(dict);
+//        StudentVo studentVo = Optional.ofNullable(UserUtil.getStudent()).orElseThrow(AuthException::new);
+//       List<BookOrderVo> bookOrderVoList = bookOrderService.select(BookOrderSelectParam.builder().semesterId(semesterId).userId(studentVo.getId()).build());
+//        BigDecimal sum = bookOrderVoList.parallelStream().map(v -> BigDecimal.valueOf(v.getPrice())).reduce(BigDecimal::add).orElse(new BigDecimal(0));
+//        Dict dict = Dict.create()
+//                .set("bookList", bookOrderVoList)
+//                .set("sum", sum.toString());
+//        return new Result<>(dict);
+        return new Result<>();
     }
 
     /**
@@ -225,6 +224,13 @@ public class BookOrderController {
     @ApiOperation("获取所有学期与折扣")
     public Result<Object> getSemesterDiscountList() {
         return new Result<>(bookOrderService.getDiscountBySemesterList());
+    }
+    @RequestMapping(value = "/getBookOrder", method = RequestMethod.POST)
+    @ApiOperation("根据书名或isbn或班级来查询订单")
+        public Result<Object> getBookOrder(@RequestBody BookOrderSelectParam param) {
+        List<BookOrderVo> bookOrders = bookOrderService.select(param);
+        PageInfo<BookOrderVo> pageInfo = new PageInfo<>(bookOrders);
+        return new Result<>(pageInfo);
     }
 
     private String excelPostfix(Workbook workbook) {

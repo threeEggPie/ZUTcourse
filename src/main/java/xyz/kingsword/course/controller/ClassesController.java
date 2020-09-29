@@ -3,6 +3,7 @@ package xyz.kingsword.course.controller;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.kingsword.course.pojo.Classes;
@@ -57,5 +58,11 @@ public class ClassesController {
     @ApiOperation("获取在校年级")
     public Result<List<Integer>> selectGrades() {
         return new Result<>(Arrays.asList(2016, 2017, 2018, 2019, 2020));
+    }
+    @RequestMapping(value = "/fuzzySearchClass", method = RequestMethod.GET)
+    @ApiOperation(value = "根据关键字进行班级模糊查询")
+    public Result<Object> fuzzySearchClass(@ApiParam(value = "关键字", required = true) String keyword){
+        PageInfo<Classes> classes = classesService.select(ClassesSelectParam.builder().className(keyword).build());
+        return new Result<>(classes);
     }
 }
