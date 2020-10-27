@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.page.PageMethod;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -76,6 +77,8 @@ public class CourseServiceImpl implements CourseService {
     public void importData(InputStream inputStream) {
         Workbook workbook;
         try {
+//            HSSFWorkbook:是操作Excel2003以前（包括2003）的版本，扩展名是.xls
+//            XSSFWorkbook:是操作Excel2007以后（包括2007）的版本，扩展名是.xlsx
             workbook = new XSSFWorkbook(inputStream);
         } catch (IOException e) {
             log.error("课程信息导入失败，excel无法打开");

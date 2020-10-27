@@ -23,16 +23,16 @@ public class Book implements Serializable {
     @ApiModelProperty(required = true, notes = "不可更新")
     private String isbn;
 
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(required = true,notes="教材名称")
     private String name;
 
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(required = true, notes = "作者")
     private String author;
 
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(required = true, notes = "出版社")
     private String publish;
 
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(required = true, notes = "价格")
     @Builder.Default
     private double price = 0;
 
@@ -51,6 +51,7 @@ public class Book implements Serializable {
     @ApiModelProperty(notes = "推荐教师填写该字段")
     private String award;
 
+    @ApiModelProperty(notes = "版次")
     private String edition;
 
     /**
@@ -59,6 +60,7 @@ public class Book implements Serializable {
     @ApiModelProperty(required = true)
     private String imgUrl;
 
+    @ApiModelProperty(notes = "课程id")
     private String courseId;
 
     /**

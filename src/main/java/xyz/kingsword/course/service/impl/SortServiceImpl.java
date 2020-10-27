@@ -353,7 +353,9 @@ public class SortServiceImpl implements SortCourseService {
             result.add(sortCourse);
             deletedIdList.addAll(mergedList);
         }
+        if(result!=null&&result.size()!=0)
         sortcourseMapper.insert(result);
+        if(deletedIdList!=null&&deletedIdList.size()!=0)
         sortcourseMapper.mergeCourseHead(deletedIdList);
     }
 
