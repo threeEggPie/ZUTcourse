@@ -27,6 +27,7 @@ import xyz.kingsword.course.enmu.ErrorEnum;
 import xyz.kingsword.course.exception.DataException;
 import xyz.kingsword.course.exception.OperationException;
 import xyz.kingsword.course.pojo.*;
+import xyz.kingsword.course.pojo.param.CourseSelectParam;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
 import xyz.kingsword.course.pojo.param.TeacherSelectParam;
@@ -224,18 +225,38 @@ public class SortServiceImpl implements SortCourseService {
                 .getList()
                 .stream()
                 .collect(Collectors.toMap(Teacher::getName, Teacher::getId));
-//      添加系统中不存在的教师
+        Map<String, String> courseMap = courseMapper.select(CourseSelectParam.builder().pageSize(0).build())
+                .stream()
+                .collect(Collectors.toMap(Course::getId, Course::getName));
+//      添加系统中不存在的教师和课程
         List<Teacher> teacherList = new ArrayList<>(20);
+        ArrayList<Course> courseList = new ArrayList<>(20);
         for (int i = 6; i < sheet.getLastRowNum() - 1; i++) {
             Row row = sheet.getRow(i);
             String name = row.getCell(12).getStringCellValue();
+            String couId = row.getCell(1).getStringCellValue().trim();
             if (!teacherMap.containsKey(name)) {
                 Teacher teacher = new Teacher();
                 String id = PinYinTool.getInstance().toPinYin(name);
                 teacher.setId(id);
                 teacherMap.put(name, id);
             }
+            if(!courseMap.containsKey(couId)){
+                Course course = new Course();
+                course.setId(couId);
+                course.setName(row.getCell(2).getStringCellValue().trim());
+                int code = CourseTypeEnum.get(row.getCell(8).getStringCellValue().trim()).getCode();
+                course.setType(code);
+                int nature=row.getCell(9).getStringCellValue().contains("必修")?2:1;
+                course.setNature(nature);
+                course.setCredit(row.getCell(7).getNumericCellValue());
+                course.setExaminationWay(row.getCell(10).getStringCellValue());
+                course.setTimeAll((int) row.getCell(6).getNumericCellValue());
+                courseList.add(course);
+            }
         }
+        if (courseList!=null&&courseList.size()!=0)
+       courseMapper.importData(courseList);
         teacherService.insert(teacherList);
 
         List<SortCourse> sortCourseList = new ArrayList<>(sheet.getLastRowNum());
@@ -294,6 +315,7 @@ public class SortServiceImpl implements SortCourseService {
             }
         }
         teacherService.insert(teacherList);
+//        添加系统不存在的课程
 
         List<SortCourse> sortCourseList = new ArrayList<>(sheet.getLastRowNum());
         for (int i = 6; i < sheet.getLastRowNum() - 1; i++) {

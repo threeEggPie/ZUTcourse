@@ -80,7 +80,7 @@
       ELSE
       1
       END ,
-      cou_id,tea_id
+      cou_id,class
 
   </select>
   <select id="getById" resultMap="BaseResultMap">
@@ -163,7 +163,7 @@
     </foreach>)
   </update>
 
-  <update id="setSortCourse">search
+  <update id="setSortCourse">
     update sortcourse
     <set>
       <if test="teacherId!=null and teacherId!=''">
