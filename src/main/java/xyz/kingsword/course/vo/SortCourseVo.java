@@ -23,6 +23,8 @@ public class SortCourseVo {
 
     private int type;
 
+    private boolean flag;
+
     private int timeAll;
 
     /**

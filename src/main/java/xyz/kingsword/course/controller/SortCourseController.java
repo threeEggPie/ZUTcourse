@@ -14,6 +14,7 @@ import xyz.kingsword.course.annocations.Role;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.exception.BaseException;
 import xyz.kingsword.course.pojo.Result;
+import xyz.kingsword.course.pojo.SortCourse;
 import xyz.kingsword.course.pojo.User;
 import xyz.kingsword.course.pojo.param.SortCourseSearchParam;
 import xyz.kingsword.course.pojo.param.SortCourseUpdateParam;
@@ -35,6 +36,7 @@ import java.util.Optional;
 @RestController
 @Api(tags = "排课操作类")
 public class SortCourseController {
+
     @Autowired
     private SortCourseService sortCourseService;
 

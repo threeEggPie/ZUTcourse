@@ -14,6 +14,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class SortServiceImpl implements SortCourseService {
-
+    String nowSemesterId;
     @Resource
     private SortCourseMapper sortcourseMapper;
 
@@ -116,6 +117,7 @@ public class SortServiceImpl implements SortCourseService {
 
     @Override
     public PageInfo<SortCourseVo> search(SortCourseSearchParam param) {
+        nowSemesterId=TimeUtil.getNowSemester().getId();
         PageInfo<SortCourseVo> pageInfo = PageMethod.startPage(param.getPageNum(), param.getPageSize()).doSelectPageInfo(() -> sortcourseMapper.search(param));
         List<SortCourseVo> sortCourseVoList = pageInfo.getList();
         renderSortCourseVo(sortCourseVoList);
@@ -124,6 +126,7 @@ public class SortServiceImpl implements SortCourseService {
         if (param.getDeclareStatus() != null) {
             sortCourseVoList.removeIf(v -> v.getBookList().isEmpty() == param.getDeclareStatus());
         }
+        sortCourseVoList.forEach(v-> v.setFlag(v.getSemesterId().compareTo(nowSemesterId)>=0?true:false));
         return PageInfo.of(sortCourseVoList, pageInfo.getNavigatePages());
     }
 

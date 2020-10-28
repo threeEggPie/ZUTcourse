@@ -76,6 +76,10 @@ public class TimeUtil {
         }
     }
 
+    /**
+     * 获取当前学期
+     * @return
+     */
     public static Semester getNowSemester() {
         return semesterList.parallelStream().filter(v -> v.getStatus() == 0).findFirst().orElseThrow(() -> new DataException(ErrorEnum.NO_SEMESTER));
     }
