@@ -69,6 +69,9 @@
       <if test="nameOrIsbn !=null and nameOrIsbn !=''">
         and ( book_name like CONCAT("%",#{nameOrIsbn},"%") or isbn = #{nameOrIsbn})
       </if>
+      <if test="stuName != null and stuName!=''">
+        and book_order_view.name=#{stuName}
+      </if>
       <if test="semesterId !=null and semesterId !=''">
         and semester_id=#{semesterId}
       </if>

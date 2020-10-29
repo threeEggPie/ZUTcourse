@@ -37,4 +37,16 @@
     from semester
     where id = #{id,jdbcType=CHAR}
   </select>
+
+  <update id="updateNow" parameterType="String" >
+    UPDATE semester SET `status` =
+    CASE
+    WHEN id &gt; #{semesterId} THEN
+    1
+    WHEN id = #{semesterId} THEN
+    0
+    WHEN id &lt; #{semesterId} THEN
+    -1
+    END ;
+  </update>
 </mapper>

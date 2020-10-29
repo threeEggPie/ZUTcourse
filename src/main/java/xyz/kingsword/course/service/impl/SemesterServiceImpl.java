@@ -10,6 +10,7 @@ import xyz.kingsword.course.util.TimeUtil;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,4 +65,14 @@ public class SemesterServiceImpl implements SemesterService {
         int navigatePages = size % pageSize > 0 ? size / pageSize + 1 : size / pageSize;
         return PageInfo.of(semesterList, navigatePages);
     }
+
+    @Override
+    public void updateNow(String semesterId) {
+        semesterMapper.updateNow(semesterId);
+    }
+
+
+
+
+
 }

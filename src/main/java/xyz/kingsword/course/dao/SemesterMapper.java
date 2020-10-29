@@ -26,4 +26,5 @@ public interface SemesterMapper {
      */
     List<Semester> getFutureSemester();
 
+    void updateNow(String semesterId);
 }

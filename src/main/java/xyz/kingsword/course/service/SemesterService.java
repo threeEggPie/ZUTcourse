@@ -16,4 +16,7 @@ public interface SemesterService {
      * 获取当前和未来所有学期
      */
     PageInfo<Semester> getFutureSemester(Integer pageNumber, Integer pageSize);
+
+
+    void updateNow(String semesterId);
 }

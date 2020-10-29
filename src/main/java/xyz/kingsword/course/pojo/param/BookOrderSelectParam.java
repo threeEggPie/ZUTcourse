@@ -14,6 +14,7 @@ public class BookOrderSelectParam {
     private String semesterId;
     private String className;
     private int bookId;
+    private String stuName;
     //书名或者isbn
     @ApiModelProperty(value = "书名或isbn号")
     private String nameOrIsbn;

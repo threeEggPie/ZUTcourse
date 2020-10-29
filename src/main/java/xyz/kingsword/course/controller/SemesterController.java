@@ -6,10 +6,8 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
 import xyz.kingsword.course.annocations.Role;
 import xyz.kingsword.course.enmu.RoleEnum;
 import xyz.kingsword.course.pojo.Result;
@@ -58,5 +56,11 @@ public class SemesterController {
     public Result<Object> getFutureSemester(int pageNum, int pageSize) {
         PageInfo<Semester> list = semesterService.getFutureSemester(pageNum, pageSize);
         return new Result<>(list);
+    }
+    @RequestMapping(value = "/updateNow",method = RequestMethod.POST)
+    @ApiOperation("修改某为当前学期")
+    public Result<Object> updateNow(@RequestParam(required = true) String semesterId){
+        semesterService.updateNow(semesterId);
+        return Result.emptyResult();
     }
 }
