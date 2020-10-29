@@ -69,6 +69,7 @@ public class SemesterServiceImpl implements SemesterService {
     @Override
     public void updateNow(String semesterId) {
         semesterMapper.updateNow(semesterId);
+        semesterList = semesterMapper.selectAll();
     }
 
 
