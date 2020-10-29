@@ -126,7 +126,7 @@ public class SortServiceImpl implements SortCourseService {
         if (param.getDeclareStatus() != null) {
             sortCourseVoList.removeIf(v -> v.getBookList().isEmpty() == param.getDeclareStatus());
         }
-        sortCourseVoList.forEach(v-> v.setFlag(v.getSemesterId().compareTo(nowSemesterId)>=0?true:false));
+        sortCourseVoList.forEach(v-> v.setFlag(v.getSemesterId().compareTo(nowSemesterId)==0?true:false));
         return PageInfo.of(sortCourseVoList, pageInfo.getNavigatePages());
     }
 

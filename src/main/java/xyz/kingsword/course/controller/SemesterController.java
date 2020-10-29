@@ -57,7 +57,7 @@ public class SemesterController {
         PageInfo<Semester> list = semesterService.getFutureSemester(pageNum, pageSize);
         return new Result<>(list);
     }
-    @RequestMapping(value = "/updateNow",method = RequestMethod.POST)
+    @RequestMapping(value = "/updateNow",method = RequestMethod.PUT)
     @ApiOperation("修改某为当前学期")
     public Result<Object> updateNow(@RequestParam(required = true) String semesterId){
         semesterService.updateNow(semesterId);
