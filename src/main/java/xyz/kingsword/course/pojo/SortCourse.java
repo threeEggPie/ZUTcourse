@@ -18,10 +18,12 @@ import java.io.Serializable;
 @ApiModel("选课实体")
 public class SortCourse implements Serializable {
 
+    @ApiModelProperty(hidden = true)
     private Integer id;
 
+    @ApiModelProperty(notes = "教师id")
     private String teaId;
-
+    @ApiModelProperty(notes = "课程id")
     private String couId;
 
     /**
@@ -29,7 +31,7 @@ public class SortCourse implements Serializable {
      */
     @ApiModelProperty(notes = "学生人数")
     private Integer studentNum;
-    @ApiModelProperty(notes = "班级id")
+    @ApiModelProperty(notes = "教研室id")
     private Integer classroomId;
 
     /**
@@ -50,15 +52,16 @@ public class SortCourse implements Serializable {
     /**
      * 被合并的课头id
      */
-    @ApiModelProperty(notes = "被合并的课头id")
+    @ApiModelProperty(notes = "被合并的课头id",hidden = true)
     private String mergedId;
 
     /**
      * 课序号
      */
+    @ApiModelProperty(hidden = true)
     private String sortNum;
 
-    @ApiModelProperty("是否是当前学期课程是 true  不是 false")
+    @ApiModelProperty(notes = "是否是当前学期课程是 true  不是 false",hidden = true)
     private boolean flag;
 
     private static final long serialVersionUID = 1L;

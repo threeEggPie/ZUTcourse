@@ -72,8 +72,11 @@ public class SemesterServiceImpl implements SemesterService {
         semesterList = semesterMapper.selectAll();
     }
 
-
-
+    @Override
+    public Semester getNowSemester() {
+        Semester nowSemester = TimeUtil.getNowSemester();
+        return nowSemester;
+    }
 
 
 }

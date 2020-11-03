@@ -63,4 +63,10 @@ public class SemesterController {
         semesterService.updateNow(semesterId);
         return Result.emptyResult();
     }
+    @RequestMapping(value = "/getNowSemester",method = RequestMethod.GET)
+    @ApiOperation("获取当前学期")
+    public Result<Object> getNowSemesterId(){
+        Semester semester=semesterService.getNowSemester();
+        return new Result<>(semester);
+    }
 }

@@ -36,6 +36,9 @@ public class Book implements Serializable {
     @Builder.Default
     private double price = 0;
 
+    @ApiModelProperty(notes = "教材类型：1国家级规划教材2省部级规划教材3一般教材0未知")
+    private int type;
+
     private String note;
 
 

@@ -19,4 +19,6 @@ public interface SemesterService {
 
 
     void updateNow(String semesterId);
+
+    Semester getNowSemester();
 }

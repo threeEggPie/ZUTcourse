@@ -29,6 +29,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -130,6 +131,16 @@ public class SortCourseController {
         file = Optional.ofNullable(file).orElseThrow(() -> new BaseException("文件上传错误"));
         ConditionUtil.validateTrue(!file.isEmpty()).orElseThrow(() -> new ValidateException("文件上传错误"));
         sortCourseService.excelImport(file.getInputStream());
+        return Result.emptyResult();
+    }
+
+    @RequestMapping(value = "/insert",method = RequestMethod.POST)
+    @ApiOperation(value = "插入一条排课记录")
+    public Result<Object> insert(@RequestBody(required = true) SortCourse sortCourse){
+        //主要不想写sql了，直接调用了之前存在的insertSortCourseList接口，后期可以优化
+        ArrayList<SortCourse> sortCoursesList = new ArrayList<>();
+        sortCoursesList.add(sortCourse);
+        sortCourseService.insertSortCourseList(sortCoursesList);
         return Result.emptyResult();
     }
 
