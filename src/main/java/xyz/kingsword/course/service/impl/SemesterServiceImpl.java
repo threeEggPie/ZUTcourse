@@ -69,7 +69,10 @@ public class SemesterServiceImpl implements SemesterService {
     @Override
     public void updateNow(String semesterId) {
         semesterMapper.updateNow(semesterId);
+        //更新缓存里的semesterList
         semesterList = semesterMapper.selectAll();
+        //让TimeUtil里的semester同步最新semesterList
+        TimeUtil.setSemesterList(semesterList);
     }
 
     @Override

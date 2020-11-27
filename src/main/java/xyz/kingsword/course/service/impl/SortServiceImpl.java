@@ -223,6 +223,7 @@ public class SortServiceImpl implements SortCourseService {
         }
         Sheet sheet = workbook.getSheetAt(0);
         restoreCellRange(sheet);
+        System.out.println(sheet.getRow(2).getCell(0).getStringCellValue());
         String semesterId = TimeUtil.getSemesterId(sheet.getRow(2).getCell(0).getStringCellValue());
         Map<String, String> teacherMap = teacherService.select(TeacherSelectParam.builder().pageSize(0).build())
                 .getList()
@@ -268,6 +269,7 @@ public class SortServiceImpl implements SortCourseService {
             SortCourse sortCourse = new SortCourse();
             sortCourse.setCouId(row.getCell(1).getStringCellValue());
             sortCourse.setClassName(row.getCell(3).getStringCellValue().trim());
+            System.out.println(row.getCell(4)==null);
             int studentNum = row.getCell(4).getStringCellValue().isEmpty() ? 0 : Integer.parseInt(row.getCell(4).getStringCellValue());
             sortCourse.setStudentNum(studentNum);
             sortCourse.setSemesterId(semesterId);

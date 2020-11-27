@@ -38,6 +38,10 @@ public class TimeUtil {
         semesterList = SemesterServiceImpl.getSemesterList();
     }
 
+    public static void setSemesterList(List<Semester> semesterList) {
+        TimeUtil.semesterList = semesterList;
+    }
+
     public static List<Semester> getAllSemester() {
         return semesterList;
     }
