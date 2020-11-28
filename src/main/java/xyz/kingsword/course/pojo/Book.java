@@ -63,6 +63,7 @@ public class Book implements Serializable {
     @ApiModelProperty(required = true)
     private String imgUrl;
 
+
     @ApiModelProperty(notes = "课程id")
     private String courseId;
 
@@ -72,6 +73,9 @@ public class Book implements Serializable {
     @Builder.Default
     @ApiModelProperty(notes = "为老师留几本书")
     private Integer forTeacher = 0;
+
+    @ApiModelProperty(notes = "1老师用书0学生用书",required = true)
+    private Integer teaUse;
 
     private static final long serialVersionUID = 1L;
 

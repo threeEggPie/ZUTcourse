@@ -12,11 +12,13 @@ import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.page.PageMethod;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.kingsword.course.dao.CourseGroupMapper;
@@ -223,7 +225,6 @@ public class SortServiceImpl implements SortCourseService {
         }
         Sheet sheet = workbook.getSheetAt(0);
         restoreCellRange(sheet);
-        System.out.println(sheet.getRow(2).getCell(0).getStringCellValue());
         String semesterId = TimeUtil.getSemesterId(sheet.getRow(2).getCell(0).getStringCellValue());
         Map<String, String> teacherMap = teacherService.select(TeacherSelectParam.builder().pageSize(0).build())
                 .getList()
@@ -269,7 +270,9 @@ public class SortServiceImpl implements SortCourseService {
             SortCourse sortCourse = new SortCourse();
             sortCourse.setCouId(row.getCell(1).getStringCellValue());
             sortCourse.setClassName(row.getCell(3).getStringCellValue().trim());
-            System.out.println(row.getCell(4)==null);
+            System.out.println((row.getCell(4)==null)+""+i);
+            //将数字转为字符串格式
+            row.getCell(4).setCellType(HSSFCell.CELL_TYPE_STRING);
             int studentNum = row.getCell(4).getStringCellValue().isEmpty() ? 0 : Integer.parseInt(row.getCell(4).getStringCellValue());
             sortCourse.setStudentNum(studentNum);
             sortCourse.setSemesterId(semesterId);
@@ -353,11 +356,14 @@ public class SortServiceImpl implements SortCourseService {
      * @param sortCourseList 须借助排课id
      */
     private void autoMerge(Sheet sheet, List<SortCourse> sortCourseList) {
-        List<CellRangeAddress> cellRangeAddressList = sheet.getMergedRegions().stream().filter(v -> v.getFirstRow() > 5).collect(Collectors.toList());
+        int count=0;
+        List<CellRangeAddress> testList = sheet.getMergedRegions();
+        List<CellRangeAddress> cellRangeAddressList = sheet.getMergedRegions().stream().filter(v -> v.getFirstRow() > 5).sorted((v1,v2)->v1.getFirstRow()-v2.getFirstRow()).collect(Collectors.toList());
         List<SortCourse> result = new ArrayList<>(sortCourseList.size() / 2);
         List<Integer> deletedIdList = new ArrayList<>(sortCourseList.size());
 //      逐个合并单元格查询，获取最左侧的序号
-        for (int j = 0; j < cellRangeAddressList.size() - 4; j++) {
+        //减4的原因是模板最后一列有四个无用合并单元格
+        for (int j = 0; j < cellRangeAddressList.size()-4 ; j++) {
             CellRangeAddress cellRangeAddress = cellRangeAddressList.get(j);
             int firstRow = cellRangeAddress.getFirstRow();
             int lastRow = cellRangeAddress.getLastRow();
@@ -377,6 +383,8 @@ public class SortServiceImpl implements SortCourseService {
             sortCourse.setClassName(className.toString().substring(1));
             sortCourse.setStudentNum(sum);
             sortCourse.setMergedId(JSON.toJSONString(mergedList));
+            System.out.println("合并班级为"+className+"行数为"+(firstRow+1)+"---"+(lastRow+1)+sheet.getRow(firstRow).getCell(12));
+            count++;
             result.add(sortCourse);
             deletedIdList.addAll(mergedList);
         }

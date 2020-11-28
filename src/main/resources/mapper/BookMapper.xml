@@ -25,11 +25,11 @@
   </sql>
   <insert id="insert" parameterType="xyz.kingsword.course.pojo.Book" useGeneratedKeys="true" keyProperty="id">
     insert into book (isbn, `name`, author,
-                      publish, price, note,
+                      publish,type,tea_use, price, note,
                       pub_date, award, edition,
                       for_teacher, img_url, course_id)
     values (#{isbn,jdbcType=CHAR}, #{name,jdbcType=CHAR}, #{author,jdbcType=CHAR},
-            #{publish,jdbcType=CHAR}, #{price,jdbcType=CHAR}, #{note,jdbcType=VARCHAR},
+            #{publish,jdbcType=CHAR},#{type,jdbcType=INTEGER},#{teaUse,jdbcType=INTEGER},#{price,jdbcType=FLOAT}, #{note,jdbcType=VARCHAR},
             #{pubDate,jdbcType=CHAR}, #{award,jdbcType=CHAR}, #{edition,jdbcType=CHAR},
             #{forTeacher,jdbcType=INTEGER},
             #{imgUrl,jdbcType=CHAR}, #{courseId,jdbcType=CHAR})
