@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private StudentVo getStudent(User user) {
-        String semesterId = TimeUtil.getNextSemester().getId();
+        String semesterId = TimeUtil.getNowSemester().getId();
         StudentVo studentVo = UserUtil.getStudent();
         List<CourseGroup> courseGroupList = courseGroupMapper.select(CourseGroupSelectParam.builder().className(studentVo.getClassName()).semesterId(semesterId).build());
         List<CourseBookOrderVo> courseBookOrderVoList = getCourseList(courseGroupList, user.getUsername());
@@ -73,7 +73,7 @@ public class UserServiceImpl implements UserService {
 
     private TeacherVo getTeacher(User user) {
         TeacherVo teacherVo = UserUtil.getTeacher();
-        String semesterId = TimeUtil.getNextSemester().getId();
+        String semesterId = TimeUtil.getNowSemester().getId();
         List<CourseGroup> courseGroupList = courseGroupMapper.select(CourseGroupSelectParam.builder().teaId(user.getUsername()).semesterId(semesterId).build());
         List<CourseBookOrderVo> courseBookOrderVoList = getCourseList(courseGroupList, user.getUsername());
         teacherVo.setCurrentRole(user.getCurrentRole());

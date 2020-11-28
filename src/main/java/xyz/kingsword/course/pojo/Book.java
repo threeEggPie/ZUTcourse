@@ -41,7 +41,8 @@ public class Book implements Serializable {
 
     private String note;
 
-
+    @ApiModelProperty(notes = "该教材所属学期")
+    private String semesterId;
     /**
      * -2删除-1审核不通过0正常
      */
