@@ -8,6 +8,7 @@
     <result column="author" jdbcType="CHAR" property="author"/>
     <result column="publish" jdbcType="CHAR" property="publish"/>
     <result column="type" jdbcType="TINYINT" property="type"/>
+    <result column="tea_use" jdbcType="INTEGER" property="teaUse"/>
     <result column="price" jdbcType="DOUBLE" property="price"/>
     <result column="note" jdbcType="VARCHAR" property="note"/>
     <result column="status" jdbcType="INTEGER" property="status"/>
