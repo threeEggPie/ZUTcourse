@@ -5,6 +5,8 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.util.StringUtil;
 import xyz.kingsword.course.pojo.Book;
 
 /**
@@ -16,8 +18,9 @@ public class BookUtil {
     /**
      * 接口地址
      */
-    private final static String URL = "http://jisuisbn.market.alicloudapi.com/isbn/query?isbn=";
-    private final static String AUTHORIZATION = "APPCODE 627300f68c00416bab6ffbefdf02da3c";
+    private final static String AliURL = "https://isbn.market.alicloudapi.com/ISBN?isbn=";
+    private final static String BinURL = "https://api.binstd.com/isbn/query?appkey=f96709487fe923c4&isbn=";
+    private final static String AUTHORIZATION = "AppCode 054484d7fd8a49a09952dba6b44f9b0d";
 
     /**
      * 根据ISBN封装book实体
@@ -29,36 +32,72 @@ public class BookUtil {
         if (isbn == null || isbn.isEmpty()) {
             return book;
         }
-        isbn = isbn.replace("-", "");
-        HttpRequest httpRequest = HttpUtil.createGet(URL + isbn).header("Authorization", AUTHORIZATION);
-        HttpResponse httpResponse = httpRequest.execute();
+        if(isbn.contains("-")) {
+            isbn = isbn.replace("-", "");
+        }
+        //先用阿里接口查询
+        HttpResponse httpResponse = HttpUtil.createGet(AliURL + isbn).header("Authorization", AUTHORIZATION).execute();
+
         String jsonString = httpResponse.body();
         JSONObject jsonObject = JSON.parseObject(jsonString);
-        int status = jsonObject.getInteger("status");
+        int status = jsonObject.getInteger("error_code");
+
         if (status != 0) {
+            //使用进制数据接口
+        httpResponse = HttpUtil.createGet(BinURL + isbn).execute();
+        jsonString = httpResponse.body();
+        jsonObject = JSON.parseObject(jsonString);
+        status = jsonObject.getInteger("status");
+        if(status!=0) {
+            return book;
+        }else {
+            JSONObject bookObject = jsonObject.getJSONObject("result");
+            book = new Book();
+            book.setName(bookObject.getString("title"));
+            book.setAuthor(bookObject.getString("author"));
+            book.setPublish(bookObject.getString("publisher"));
+            book.setNote(bookObject.getString("summary"));
+            book.setPubDate(bookObject.getString("pubdate"));
+            book.setEdition(StringUtils.isEmpty(bookObject.getString("edition"))?"1版":bookObject.getString("edition"));
+            book.setIsbn(isbn);
+
+            String priceStr = bookObject.getString("price");
+            if (priceStr != null && !priceStr.isEmpty()) {
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 0; i < priceStr.length(); i++) {
+                    if (priceStr.charAt(i) >= 48 && priceStr.charAt(i) <= 57 || priceStr.charAt(i) == 46) {
+                        stringBuilder.append(priceStr.charAt(i));
+                    }
+                }
+                book.setPrice(Double.parseDouble(stringBuilder.toString()));
+            }
             return book;
         }
-        JSONObject bookObject = jsonObject.getJSONObject("result");
-        book = new Book();
-        book.setName(bookObject.getString("title"));
-        book.setAuthor(bookObject.getString("author"));
-        book.setPublish(bookObject.getString("publisher"));
-        book.setNote(bookObject.getString("summary"));
-        book.setPubDate(bookObject.getString("pubdate"));
-        book.setEdition(bookObject.getString("edition"));
-        book.setIsbn(isbn);
 
-        String priceStr = bookObject.getString("price");
-        if (priceStr != null && !priceStr.isEmpty()) {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int i = 0; i < priceStr.length(); i++) {
-                if (priceStr.charAt(i) >= 48 && priceStr.charAt(i) <= 57 || priceStr.charAt(i) == 46) {
-                    stringBuilder.append(priceStr.charAt(i));
+        }else {
+            JSONObject bookObject = jsonObject.getJSONObject("result");
+            book = new Book();
+            book.setName(bookObject.getString("title"));
+            book.setAuthor(bookObject.getString("author"));
+            book.setPublish(bookObject.getString("publisher"));
+            book.setNote(bookObject.getString("summary"));
+            book.setPubDate(bookObject.getString("pubdate"));
+            book.setEdition(StringUtils.isEmpty(bookObject.getString("levelNum"))?"1版":bookObject.getString("levelNum"));
+            book.setIsbn(isbn);
+
+            String priceStr = bookObject.getString("price");
+            if (priceStr != null && !priceStr.isEmpty()) {
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 0; i < priceStr.length(); i++) {
+                    if (priceStr.charAt(i) >= 48 && priceStr.charAt(i) <= 57 || priceStr.charAt(i) == 46) {
+                        stringBuilder.append(priceStr.charAt(i));
+                    }
                 }
+                book.setPrice(Double.parseDouble(stringBuilder.toString()));
             }
-            book.setPrice(Double.parseDouble(stringBuilder.toString()));
+            return book;
         }
-        return book;
+
     }
 
     /**
@@ -67,7 +106,7 @@ public class BookUtil {
      * @param isbn 长度：十位或十三位
      */
     public static String getBookName(String isbn) {
-        HttpRequest httpRequest = HttpUtil.createGet(URL + isbn).header("Authorization", AUTHORIZATION);
+        HttpRequest httpRequest = HttpUtil.createGet(BinURL + isbn);
         HttpResponse httpResponse = httpRequest.execute();
         String jsonString = httpResponse.body();
         JSONObject jsonObject = JSONObject.parseObject(jsonString);

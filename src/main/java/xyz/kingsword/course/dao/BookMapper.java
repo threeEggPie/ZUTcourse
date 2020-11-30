@@ -31,4 +31,6 @@ public interface BookMapper {
 
 
     List<Book> selectBookHistory(String courId);
+
+    List<Book> selectStudentBookByCourseList(Collection<String> courseIdCollection);
 }

@@ -122,7 +122,7 @@ public class BookOrderServiceImpl implements BookOrderService {
 //      获取课程idList
         List<String> courseList = courseGroupList.stream().map(CourseGroup::getCouId).collect(Collectors.toList());
 //      获取全部课程的教材id
-        Map<String, List<Book>> courseBookMap = bookService.getTextBookByCourseList(courseList).stream().collect(Collectors.groupingBy(Book::getCourseId));
+        Map<String, List<Book>> courseBookMap = bookService.getStudentBookByCourseList(courseList).stream().collect(Collectors.groupingBy(Book::getCourseId));
         for (Integer grade : gradeList) {
             List<Classes> classesList = classesMap.get(grade);
             ConditionUtil.notEmpty(classesList).orElseThrow(() -> new DataException(ErrorEnum.NO_DATA));

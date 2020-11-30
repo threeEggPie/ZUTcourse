@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 构建导出个人信息时附带下一学期的订书信息
+     * 构建导出个人信息时附带本学期的订书信息
      *
      * @param courseGroupList 课程组view
      * @param username        username
@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
             String semesterId = courseGroupList.get(0).getSemesterId();
             List<String> courseIdList = courseGroupList.stream().map(CourseGroup::getCouId).collect(Collectors.toList());
 //          [courseId,List<Book>]
-            Map<String, List<Book>> courseBookMap = bookService.getTextBookByCourseList(courseIdList).stream().collect(Collectors.groupingBy(Book::getCourseId));
+            Map<String, List<Book>> courseBookMap = bookService.getStudentBookByCourseList(courseIdList).stream().collect(Collectors.groupingBy(Book::getCourseId));
             BookOrderSelectParam param = BookOrderSelectParam.builder().userId(username).semesterId(semesterId).build();
             Map<Integer, BookOrderVo> bookIdToOrder = bookOrderService.select(param).parallelStream().collect(Collectors.toMap(BookOrderVo::getBookId, v -> v));
             for (CourseGroup courseGroup : courseGroupList) {

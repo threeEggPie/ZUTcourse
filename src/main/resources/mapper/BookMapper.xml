@@ -97,6 +97,7 @@
     where book.course_id = #{courseId}
       and status = 0
   </select>
+
   <select id="getTextBookByCourseList" resultMap="BaseResultMap">
     select * from book where course_id in (
     <foreach collection="collection" item="item" index="index" separator=",">
@@ -104,6 +105,14 @@
     </foreach>
     )
     and `status`=0
+  </select>
+  <select id="selectStudentBookByCourseList" resultMap="BaseResultMap">
+    select * from book where course_id in (
+    <foreach collection="collection" item="item" index="index" separator=",">
+      #{item}
+    </foreach>
+    )
+    and `status`=0 and `tea_use`=0
   </select>
   <select id="selectBookHistory" resultMap="BaseResultMap">
     select * from book where course_id=#{courId} and status= -1

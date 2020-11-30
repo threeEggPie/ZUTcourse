@@ -117,4 +117,9 @@ public class BookController {
         List<Book> books = bookService.getBookHistory(courId);
         return new Result<>(books);
     }
+
+//    public Result<Object> getStudentBook(){
+//       List<Book> books= bookService.getStudentBookByCourseList();
+//        return new Result<>(books);
+//    }
 }

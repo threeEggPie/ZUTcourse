@@ -127,6 +127,18 @@ public class BookServiceImpl implements BookService {
         return books;
     }
 
+    /**
+     * 根据课程列表获取所有学生用书
+     * @return
+     */
+    @Override
+    public List<Book> getStudentBookByCourseList(Collection<String> courseIdCollection) {
+        if (CollUtil.isNotEmpty(courseIdCollection)) {
+            return bookMapper.selectStudentBookByCourseList(courseIdCollection);
+        }
+        return Collections.emptyList();
+    }
+
 
     @Override
     public Book getBook(int id) {
