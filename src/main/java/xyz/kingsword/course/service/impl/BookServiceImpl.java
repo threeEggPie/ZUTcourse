@@ -171,7 +171,7 @@ public class BookServiceImpl implements BookService {
         });
 //        查课程组所有老师
         CourseGroupMapper courseGroupMapper = SpringContextUtil.getBean(CourseGroupMapper.class);
-        List<CourseGroup> courseGroupList = courseGroupMapper.getSemesterCourseGroup(courseId, TimeUtil.getNextSemester().getId());
+        List<CourseGroup> courseGroupList = courseGroupMapper.getSemesterCourseGroup(courseId, TimeUtil.getNowSemester().getId());
         book.setForTeacher(courseGroupList.size());
         book.setCourseId(courseId);
         bookMapper.insert(book);
@@ -200,7 +200,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public void delete(@NonNull List<Integer> bookIdList, @NonNull String courseId) {
         validateAuth(courseId);
-        String semesterId = TimeUtil.getNextSemester().getId();
+        String semesterId = TimeUtil.getNowSemester().getId();
         int count = bookOrderService.selectByBookIdSemester(bookIdList, semesterId);
         ConditionUtil.validateTrue(count == 0).orElseThrow(() -> new BaseException("教材已被学生订购，不能删除"));
         bookMapper.delete(bookIdList);

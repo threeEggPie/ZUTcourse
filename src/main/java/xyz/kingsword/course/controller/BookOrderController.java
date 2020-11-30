@@ -67,8 +67,8 @@ public class BookOrderController {
     @ApiOperation("根据年级，订购必修教材")
     @Role
     public Result<Object> insertByGrade(@RequestBody List<Integer> gradeList) {
-        String nextSemesterId = TimeUtil.getNextSemester().getId();
-        bookOrderService.insertByGrade(gradeList, nextSemesterId);
+        String nowSemesterId = TimeUtil.getNowSemester().getId();
+        bookOrderService.insertByGrade(gradeList, nowSemesterId);
         return Result.emptyResult();
     }
 
@@ -92,14 +92,14 @@ public class BookOrderController {
     @ApiOperation("获取学生订书记录")
     @Role({RoleEnum.STUDENT})
     public Result<Object> getStudentOrder(String semesterId) {
-//        StudentVo studentVo = Optional.ofNullable(UserUtil.getStudent()).orElseThrow(AuthException::new);
-//       List<BookOrderVo> bookOrderVoList = bookOrderService.select(BookOrderSelectParam.builder().semesterId(semesterId).userId(studentVo.getId()).build());
-//        BigDecimal sum = bookOrderVoList.parallelStream().map(v -> BigDecimal.valueOf(v.getPrice())).reduce(BigDecimal::add).orElse(new BigDecimal(0));
-//        Dict dict = Dict.create()
-//                .set("bookList", bookOrderVoList)
-//                .set("sum", sum.toString());
-//        return new Result<>(dict);
-        return new Result<>();
+        StudentVo studentVo = Optional.ofNullable(UserUtil.getStudent()).orElseThrow(AuthException::new);
+       List<BookOrderVo> bookOrderVoList = bookOrderService.select(BookOrderSelectParam.builder().semesterId(semesterId).userId(studentVo.getId()).build());
+        BigDecimal sum = bookOrderVoList.parallelStream().map(v -> BigDecimal.valueOf(v.getPrice())).reduce(BigDecimal::add).orElse(new BigDecimal(0));
+        Dict dict = Dict.create()
+                .set("bookList", bookOrderVoList)
+                .set("sum", sum.toString());
+        return new Result<>(dict);
+//        return new Result<>();
     }
 
     /**
