@@ -24,4 +24,5 @@ public class Semester {
 
     private Integer status;
 
+
 }

@@ -176,9 +176,9 @@ public class BookOrderServiceImpl implements BookOrderService {
         ConditionUtil.validateTrue(bookMap.size() == bookIdList.size()).orElseThrow(DataException::new);
 
         List<BookOrderVo> bookOrderVoList = bookOrderMapper.courseGroupOrderInfo(courseId, semesterId);
-        if (bookOrderVoList.isEmpty()) {
-            return Collections.emptyList();
-        }
+//        if (bookOrderVoList.isEmpty()) {
+//            return Collections.emptyList();
+//        }
         Map<Integer, List<BookOrderVo>> bookToOrderMap = bookOrderVoList.parallelStream().collect(Collectors.groupingBy(BookOrderVo::getBookId));
         List<CourseGroupOrderVo> courseGroupOrderVoList = new ArrayList<>(bookIdList.size());
         for (Integer bookId : bookIdList) {
@@ -196,6 +196,12 @@ public class BookOrderServiceImpl implements BookOrderService {
                     courseGroupOrderVo.addOrderInfo(teaName, flag);
                 }
             });
+            if(bookToOrderMap.get(bookId)==null){
+                for (CourseGroup courseGroup : courseGroupList) {
+                    String teaName = courseGroup.getTeacherName();
+                    courseGroupOrderVo.addOrderInfo(teaName, false);
+                }
+            }
             courseGroupOrderVoList.add(courseGroupOrderVo);
         }
         return courseGroupOrderVoList;

@@ -36,6 +36,7 @@ public class SemesterServiceImpl implements SemesterService {
     @Override
     public void addSemester(Semester semester) {
         semester.setName(TimeUtil.getSemesterName(semester.getId()));
+//        TimeUtil
         if (semesterMapper.insert(semester) == 1) {
             semesterList.add(semester);
         }
