@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
         String semesterId = TimeUtil.getNowSemester().getId();
         StudentVo studentVo = UserUtil.getStudent();
         List<CourseGroup> courseGroupList = courseGroupMapper.select(CourseGroupSelectParam.builder().className(studentVo.getClassName()).semesterId(semesterId).build());
-        List<CourseBookOrderVo> courseBookOrderVoList = getCourseList(courseGroupList, user.getUsername());
+        List<CourseBookOrderVo> courseBookOrderVoList = getCourseList(courseGroupList, user);
         studentVo.setSemesterId(semesterId);
         studentVo.setCourseList(courseBookOrderVoList);
         return studentVo;
@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
         TeacherVo teacherVo = UserUtil.getTeacher();
         String semesterId = TimeUtil.getNowSemester().getId();
         List<CourseGroup> courseGroupList = courseGroupMapper.select(CourseGroupSelectParam.builder().teaId(user.getUsername()).semesterId(semesterId).build());
-        List<CourseBookOrderVo> courseBookOrderVoList = getCourseList(courseGroupList, user.getUsername());
+        List<CourseBookOrderVo> courseBookOrderVoList = getCourseList(courseGroupList, user);
         teacherVo.setCurrentRole(user.getCurrentRole());
         teacherVo.setSemesterId(semesterId);
         teacherVo.setCourseList(courseBookOrderVoList);
@@ -86,16 +86,21 @@ public class UserServiceImpl implements UserService {
      * 构建导出个人信息时附带本学期的订书信息
      *
      * @param courseGroupList 课程组view
-     * @param username        username
+     * @param user        当前登录用户
      */
-    private List<CourseBookOrderVo> getCourseList(List<CourseGroup> courseGroupList, String username) {
+    private List<CourseBookOrderVo> getCourseList(List<CourseGroup> courseGroupList, User user) {
         List<CourseBookOrderVo> courseBookOrderVoList = new ArrayList<>(courseGroupList.size());
         if (!courseGroupList.isEmpty()) {
             String semesterId = courseGroupList.get(0).getSemesterId();
             List<String> courseIdList = courseGroupList.stream().map(CourseGroup::getCouId).collect(Collectors.toList());
 //          [courseId,List<Book>]
-            Map<String, List<Book>> courseBookMap = bookService.getStudentBookByCourseList(courseIdList).stream().collect(Collectors.groupingBy(Book::getCourseId));
-            BookOrderSelectParam param = BookOrderSelectParam.builder().userId(username).semesterId(semesterId).build();
+            Map<String, List<Book>> courseBookMap;
+            if(isStudent(user)){
+                 courseBookMap = bookService.getStudentBookByCourseList(courseIdList).stream().collect(Collectors.groupingBy(Book::getCourseId));
+            }else {
+                courseBookMap=bookService.getTextBookByCourseList(courseIdList).stream().collect(Collectors.groupingBy(Book::getCourseId));
+            }
+            BookOrderSelectParam param = BookOrderSelectParam.builder().userId(user.getUsername()).semesterId(semesterId).build();
             Map<Integer, BookOrderVo> bookIdToOrder = bookOrderService.select(param).parallelStream().collect(Collectors.toMap(BookOrderVo::getBookId, v -> v));
             for (CourseGroup courseGroup : courseGroupList) {
                 List<BookOrderFlag> bookOrderFlagList = new ArrayList<>();
