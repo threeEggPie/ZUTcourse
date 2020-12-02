@@ -834,7 +834,7 @@ public class BookOrderServiceImpl implements BookOrderService {
                 .parallelStream()
                 .sorted((a, b) -> StrUtil.compare(a.getId(), b.getId(), false))
                 .collect(Collectors.toList());
-        List<BookOrderVo> bookOrderVoList = this.select(BookOrderSelectParam.builder().semesterId(semesterId).className(className).build());
+        List<BookOrderVo> bookOrderVoList = this.select(BookOrderSelectParam.builder().semesterId(semesterId).className(className).pageSize(0).build());
         if (studentList.isEmpty()) {
             return new String[0][0];
         }
