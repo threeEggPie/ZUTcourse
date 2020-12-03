@@ -76,7 +76,8 @@ public class Book implements Serializable {
     private Integer forTeacher = 0;
 
     @ApiModelProperty(notes = "1老师用书0学生用书",required = true)
-    private Integer teaUse;
+    @Builder.Default
+    private Integer teaUse=0;
 
     private static final long serialVersionUID = 1L;
 
